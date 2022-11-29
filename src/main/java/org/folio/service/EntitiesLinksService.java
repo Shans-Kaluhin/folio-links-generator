@@ -46,7 +46,8 @@ public class EntitiesLinksService {
 
     public InstanceLinks.Link constructLinkByRules(ExternalIdsHolder instance, ExternalIdsHolder authority, String field) {
         var subfields = new ArrayList<Character>();
+        var authorityNaturalId = authority.getHrid().replaceAll("\\s","");
 
-        return new InstanceLinks.Link(instance.getId(), authority.getId(), field, subfields);
+        return new InstanceLinks.Link(instance.getId(), authority.getId(), field, authorityNaturalId, subfields);
     }
 }

@@ -42,13 +42,10 @@ public class LinksGenerationService {
     }
 
     private String link(File authorityMrcFile) {
-//        var generatedBibs = marcConverterService.generateBibs();
-//
-//        var bibJobId = importService.importBibs(generatedBibs);
-//        var authorityJobId = importService.importAuthority(authorityMrcFile);
+        var generatedBibs = marcConverterService.generateBibs();
 
-        var bibJobId = "ea727f20-b201-4be4-bf76-6f0de67fc6de";
-        var authorityJobId = "f9d0d28f-d67a-4762-a8b8-7587019b6b21";
+        var bibJobId = importService.importBibs(generatedBibs);
+        var authorityJobId = importService.importAuthority(authorityMrcFile);
 
         var instances = srsClient.retrieveExternalIdsHolders(bibJobId, MARC_BIB);
         var authorities = srsClient.retrieveExternalIdsHolders(authorityJobId, MARC_AUTHORITY);
