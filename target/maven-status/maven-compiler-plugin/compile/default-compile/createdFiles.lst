@@ -1,0 +1,12 @@
+org\folio\service\MarcConverterService.class
+org\folio\client\EntitiesLinksClient.class
+org\folio\service\EntitiesLinksService.class
+org\folio\client\DataImportClient.class
+org\folio\FolioLinksGeneratorApp.class
+org\folio\model\Configuration.class
+org\folio\service\DataImportService.class
+org\folio\client\AuthClient.class
+org\folio\service\LinksGenerationService.class
+org\folio\model\UploadDefinition.class
+org\folio\util\FileWorker.class
+org\folio\model\Configuration$BibsConfig.class

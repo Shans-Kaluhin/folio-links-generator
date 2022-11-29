@@ -1,0 +1,41 @@
+{
+  "instance": {
+    "id": "4bbec474-ba4d-4404-990f-afe2fc86dd3d",
+    "instanceTypeId": "8105bd44-e7bd-487e-a8f2-b804a361d92f",
+    "personalNumber": "09448119",
+    "languages": [
+      "eng",
+      "lat"
+    ],
+    "fonts": [
+      "Times New Roman",
+      "Wingdings",
+      "Yu Gothic"
+    ],
+    "books": [
+      {
+        "title": "In Search of Lost Time",
+        "genre": "Modernist",
+        "author": "Marcel Proust"
+      },
+      {
+        "title": "Ulysses",
+        "genre": "Novel",
+        "author": "James Joyce"
+      },
+      {
+        "title": "The Great Gatsby",
+        "genre": "Tragedy",
+        "author": "F. Scott Fitzgerald"
+      }
+    ],
+    "publication": [
+      {
+        "dateOfPublication": "2016"
+      },
+      {
+        "dateOfPublication": "2015"
+      }
+    ]
+  }
+}
