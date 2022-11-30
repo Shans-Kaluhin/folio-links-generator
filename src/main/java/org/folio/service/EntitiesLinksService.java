@@ -1,5 +1,6 @@
 package org.folio.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import org.folio.client.EntitiesLinksClient;
 import org.folio.model.Configuration;
 import org.folio.model.ExternalIdsHolder;
@@ -11,7 +12,7 @@ import java.util.List;
 public class EntitiesLinksService {
     private final EntitiesLinksClient linksClient;
     private final Configuration configuration;
-    private String rules;
+    private JsonNode rules;
 
     public EntitiesLinksService(Configuration configuration, EntitiesLinksClient linksClient) {
         this.configuration = configuration;
@@ -45,8 +46,17 @@ public class EntitiesLinksService {
     }
 
     public InstanceLinks.Link constructLinkByRules(ExternalIdsHolder instance, ExternalIdsHolder authority, String field) {
+        var authorityNaturalId = authority.getHrid().replaceAll("\\s", "");
         var subfields = new ArrayList<Character>();
-        var authorityNaturalId = authority.getHrid().replaceAll("\\s","");
+
+        for (JsonNode rule : rules) {
+            var bibField = rule.get("bibField").asText();
+            if (field.equals(bibField)) {
+                var authoritySubfields = rule.get("authoritySubfields");
+                authoritySubfields.elements().forEachRemaining(subfield -> subfields.add(subfield.asText().charAt(0)));
+                break;
+            }
+        }
 
         return new InstanceLinks.Link(instance.getId(), authority.getId(), field, authorityNaturalId, subfields);
     }

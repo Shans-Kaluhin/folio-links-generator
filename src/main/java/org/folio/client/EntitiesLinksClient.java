@@ -1,11 +1,10 @@
 package org.folio.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.folio.model.InstanceLinks;
 import org.folio.util.HttpWorker;
-
-import java.util.HashMap;
 
 public class EntitiesLinksClient {
 
@@ -25,15 +24,16 @@ public class EntitiesLinksClient {
         var request = httpWorker.constructPUTRequest(uri, body);
         var response = httpWorker.sendRequest(request);
 
-        httpWorker.verifyStatus(response, 200, "Failed to link records");
+        httpWorker.verifyStatus(response, 204, "Failed to link records");
     }
 
-    public String getLinkedRules() {
+    @SneakyThrows
+    public JsonNode getLinkedRules() {
         var request = httpWorker.constructGETRequest(GET_LINKING_RULES_PATH);
         var response = httpWorker.sendRequest(request);
 
         httpWorker.verifyStatus(response, 200, "Failed to get linking rules");
 
-        return response.body();
+        return new ObjectMapper().readTree(response.body());
     }
 }
