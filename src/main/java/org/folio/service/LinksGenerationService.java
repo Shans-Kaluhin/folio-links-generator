@@ -52,6 +52,6 @@ public class LinksGenerationService {
 
         linksService.linkRecords(instances, authorities);
 
-        return "Was successfully link";
+        return "Records was successfully linked";
     }
 }
