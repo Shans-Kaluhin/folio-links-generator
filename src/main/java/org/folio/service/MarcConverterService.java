@@ -12,7 +12,6 @@ import org.folio.reader.JPathSyntaxEntityReader;
 import org.folio.writer.RecordWriter;
 import org.folio.writer.impl.MarcRecordWriter;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,7 +20,9 @@ import java.util.List;
 import java.util.Map;
 
 import static org.folio.FolioLinksGeneratorApp.exitWithError;
-import static org.folio.util.FileWorker.*;
+import static org.folio.util.FileWorker.getJsonObject;
+import static org.folio.util.FileWorker.getMappedResourceFile;
+import static org.folio.util.FileWorker.writeFile;
 
 public class MarcConverterService {
 
@@ -30,10 +31,6 @@ public class MarcConverterService {
 
     public MarcConverterService(Configuration configuration) {
         this.configuration = configuration;
-    }
-
-    public File getGeneratedBibsFile() {
-        return getResourceFile(GENERATED_BIBS_FILE);
     }
 
     public Path generateBibs() {
@@ -67,9 +64,9 @@ public class MarcConverterService {
         EntityReader entityReader = new JPathSyntaxEntityReader(instance.toString());
         RecordWriter recordWriter = new MarcRecordWriter();
         RuleProcessor ruleProcessor = new RuleProcessor();
-        return ruleProcessor.process(entityReader, recordWriter, reference, rules, (a) -> {
-            exitWithError("Failed to map mrc record: " + a);
-        });
+        return ruleProcessor.process(entityReader, recordWriter, reference, rules,
+                (a) -> exitWithError("Failed to map mrc record: " + a)
+        );
     }
 
     private ReferenceDataWrapperImpl retrieveReference() {

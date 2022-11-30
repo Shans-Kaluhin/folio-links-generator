@@ -6,6 +6,7 @@ import org.springframework.util.ResourceUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -22,16 +23,16 @@ public class FileWorker {
         try {
             return Files.write(Paths.get(name), strings, StandardCharsets.UTF_8);
         } catch (IOException e) {
-            exitWithError("Failed to write file:" + name);
+            exitWithError("Failed to write file: " + name);
             return null;
         }
     }
 
-    public static File getResourceFile(String name) {
+    public static InputStream getResourceFile(String name) {
         try {
-            return ResourceUtils.getFile("classpath:" + name);
+            return ResourceUtils.getURL("classpath:" + name).openStream();
         } catch (IOException e) {
-            exitWithError("Failed to read file:" + name);
+            exitWithError("Failed to read file: " + name);
             return null;
         }
     }
@@ -60,7 +61,7 @@ public class FileWorker {
             var file = getResourceFile(name);
             return (ObjectNode) OBJECT_MAPPER.readTree(file);
         } catch (IOException e) {
-            exitWithError("Failed to map json file value:" + name);
+            exitWithError("Failed to map json file value: " + name);
             return null;
         }
     }
