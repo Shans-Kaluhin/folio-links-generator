@@ -5,9 +5,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.folio.model.InstanceLinks;
 import org.folio.util.HttpWorker;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class EntitiesLinksClient {
-
+    private static final Logger LOG = LoggerFactory.getLogger(EntitiesLinksClient.class);
     private static final String GET_LINKING_RULES_PATH = "/linking-rules/instance-authority";
     private static final String EDIT_LINKS_PATH = "/links/instances/%s";
     private final HttpWorker httpWorker;
@@ -29,6 +31,7 @@ public class EntitiesLinksClient {
 
     @SneakyThrows
     public JsonNode getLinkedRules() {
+        LOG.info("Retrieving linking rules...");
         var request = httpWorker.constructGETRequest(GET_LINKING_RULES_PATH);
         var response = httpWorker.sendRequest(request);
 

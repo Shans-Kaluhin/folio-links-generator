@@ -3,6 +3,7 @@ package org.folio.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.folio.model.Configuration;
+import org.folio.model.ExternalIdsHolder;
 import org.folio.processor.RuleProcessor;
 import org.folio.processor.referencedata.JsonObjectWrapper;
 import org.folio.processor.referencedata.ReferenceDataWrapperImpl;
@@ -11,6 +12,8 @@ import org.folio.reader.EntityReader;
 import org.folio.reader.JPathSyntaxEntityReader;
 import org.folio.writer.RecordWriter;
 import org.folio.writer.impl.MarcRecordWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -25,7 +28,8 @@ import static org.folio.util.FileWorker.getMappedResourceFile;
 import static org.folio.util.FileWorker.writeFile;
 
 public class MarcConverterService {
-
+    private static final Logger LOG = LoggerFactory.getLogger(MarcConverterService.class);
+    private static final String LINKED_INSTANCES_FILE = "linkedInstances.txt";
     private static final String GENERATED_BIBS_FILE = "generatedBibs.mrc";
     private final Configuration configuration;
 
@@ -33,7 +37,15 @@ public class MarcConverterService {
         this.configuration = configuration;
     }
 
+    public void writeLinkedIds(List<ExternalIdsHolder> instances) {
+        var mrcInstances = instances.stream().map(ExternalIdsHolder::getId).toList();
+        LOG.info("Write file with linked instances for each authority");
+        writeFile(LINKED_INSTANCES_FILE, mrcInstances);
+    }
+
     public Path generateBibs() {
+        LOG.info("Generating bib mrc file...");
+
         var rules = retrieveRules();
         var reference = retrieveReference();
         var totalBibs = configuration.getMarcBibs().stream()

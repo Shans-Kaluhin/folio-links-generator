@@ -5,11 +5,14 @@ import org.folio.client.EntitiesLinksClient;
 import org.folio.model.Configuration;
 import org.folio.model.ExternalIdsHolder;
 import org.folio.model.InstanceLinks;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class EntitiesLinksService {
+    private static final Logger LOG = LoggerFactory.getLogger(EntitiesLinksService.class);
     private final EntitiesLinksClient linksClient;
     private final Configuration configuration;
     private JsonNode rules;
@@ -24,6 +27,7 @@ public class EntitiesLinksService {
 
         //authorities loop
         for (ExternalIdsHolder authorityHolder : authorities) {
+            LOG.info("Linking instances for authority: " + authorityHolder.getId());
             //configuration loop
             for (Configuration.BibsConfig bibConfig : configuration.getMarcBibs()) {
                 //instances loop

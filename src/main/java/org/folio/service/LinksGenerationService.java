@@ -51,6 +51,7 @@ public class LinksGenerationService {
         var authorities = srsClient.retrieveExternalIdsHolders(authorityJobId, MARC_AUTHORITY);
 
         linksService.linkRecords(instances, authorities);
+        marcConverterService.writeLinkedIds(instances);
 
         return "Records was successfully linked";
     }
