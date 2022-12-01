@@ -2,6 +2,7 @@ package org.folio.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.gson.Gson;
 import lombok.SneakyThrows;
 import org.folio.model.InstanceLinks;
 import org.folio.util.HttpWorker;
@@ -10,8 +11,9 @@ import org.slf4j.LoggerFactory;
 
 public class EntitiesLinksClient {
     private static final Logger LOG = LoggerFactory.getLogger(EntitiesLinksClient.class);
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String GET_LINKING_RULES_PATH = "/linking-rules/instance-authority";
-    private static final String EDIT_LINKS_PATH = "/links/instances/%s";
+    private static final String INSTANCE_LINKS_PATH = "/links/instances/%s";
     private final HttpWorker httpWorker;
 
     public EntitiesLinksClient(HttpWorker httpWorker) {
@@ -19,8 +21,23 @@ public class EntitiesLinksClient {
     }
 
     @SneakyThrows
-    public void link(String instance, InstanceLinks instanceLinks) {
-        var uri = String.format(EDIT_LINKS_PATH, instance);
+    public void appendLinks(String instanceId, InstanceLinks newLinks) {
+        var uri = String.format(INSTANCE_LINKS_PATH, instanceId);
+
+        var request = httpWorker.constructGETRequest(uri);
+        var response = httpWorker.sendRequest(request);
+
+        httpWorker.verifyStatus(response, 200, "Failed to get linking rules");
+
+        var oldLinks = new Gson().fromJson(response.body(), InstanceLinks.class);
+        newLinks.getLinks().addAll(oldLinks.getLinks());
+
+        link(instanceId, newLinks);
+    }
+
+    @SneakyThrows
+    public void link(String instanceId, InstanceLinks instanceLinks) {
+        var uri = String.format(INSTANCE_LINKS_PATH, instanceId);
         var body = new ObjectMapper().writeValueAsString(instanceLinks);
 
         var request = httpWorker.constructPUTRequest(uri, body);
@@ -37,6 +54,6 @@ public class EntitiesLinksClient {
 
         httpWorker.verifyStatus(response, 200, "Failed to get linking rules");
 
-        return new ObjectMapper().readTree(response.body());
+        return OBJECT_MAPPER.readTree(response.body());
     }
 }

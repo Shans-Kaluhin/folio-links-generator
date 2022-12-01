@@ -9,13 +9,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EntitiesLinksService {
     private static final Logger LOG = LoggerFactory.getLogger(EntitiesLinksService.class);
     private final EntitiesLinksClient linksClient;
     private final Configuration configuration;
-    private JsonNode rules;
+    private HashMap<String, List<Character>> rules;
 
     public EntitiesLinksService(Configuration configuration, EntitiesLinksClient linksClient) {
         this.configuration = configuration;
@@ -23,45 +25,53 @@ public class EntitiesLinksService {
     }
 
     public void linkRecords(List<ExternalIdsHolder> instances, List<ExternalIdsHolder> authorities) {
-        rules = linksClient.getLinkedRules();
+        rules = mapRules(linksClient.getLinkedRules());
 
-        //authorities loop
         for (ExternalIdsHolder authorityHolder : authorities) {
-            LOG.info("Linking instances for authority: " + authorityHolder.getId());
-            //configuration loop
-            for (Configuration.BibsConfig bibConfig : configuration.getMarcBibs()) {
-                //instances loop
-                for (int i = 0; i < bibConfig.totalBibs(); i++) {
-                    var instanceHolder = instances.get(i);
-                    var instanceLinks = constructLinks(instanceHolder, authorityHolder, bibConfig.linkingFields());
-                    linksClient.link(instanceHolder.getId(), instanceLinks);
-                }
+            linkInstances(authorityHolder, instances);
+        }
+    }
+
+    private void linkInstances(ExternalIdsHolder authorityHolder, List<ExternalIdsHolder> instances) {
+        LOG.info("Linking instances for authority: " + authorityHolder.getId());
+        int instancesAmount = instances.size();
+
+        for (Configuration.BibsConfig bibConfig : configuration.getMarcBibs()) {
+            for (int i = 0; i < bibConfig.totalBibs(); i++) {
+                var instanceHolder = instances.get(--instancesAmount);
+                var instanceLinks = constructLinks(bibConfig, authorityHolder, instanceHolder);
+
+                linksClient.appendLinks(instanceHolder.getId(), new InstanceLinks(instanceLinks));
             }
         }
     }
 
-    public InstanceLinks constructLinks(ExternalIdsHolder instance, ExternalIdsHolder authority, List<Integer> fields) {
-        var links = fields.stream()
+    private List<InstanceLinks.Link> constructLinks(Configuration.BibsConfig config, ExternalIdsHolder authorityHolder, ExternalIdsHolder instanceHolder) {
+        return config.linkingFields().stream()
                 .map(String::valueOf)
-                .map(field -> constructLinkByRules(instance, authority, field))
-                .toList();
-
-        return new InstanceLinks(links);
+                .map(field -> constructLink(field, authorityHolder, instanceHolder))
+                .collect(Collectors.toList());
     }
 
-    public InstanceLinks.Link constructLinkByRules(ExternalIdsHolder instance, ExternalIdsHolder authority, String field) {
-        var authorityNaturalId = authority.getHrid().replaceAll("\\s", "");
-        var subfields = new ArrayList<Character>();
+    private InstanceLinks.Link constructLink(String field, ExternalIdsHolder authorityHolder, ExternalIdsHolder instanceHolder) {
+        var instanceId = instanceHolder.getId();
+        var authorityId = authorityHolder.getId();
+        var authorityNaturalId = authorityHolder.getHrid().replaceAll("\\s", "");
+        var subfields = rules.get(field);
 
-        for (JsonNode rule : rules) {
+        return new InstanceLinks.Link(instanceId, authorityId, field, authorityNaturalId, subfields);
+    }
+
+    private HashMap<String, List<Character>> mapRules(JsonNode jsonNode) {
+        var rules = new HashMap<String, List<Character>>();
+
+        for (JsonNode rule : jsonNode) {
             var bibField = rule.get("bibField").asText();
-            if (field.equals(bibField)) {
-                var authoritySubfields = rule.get("authoritySubfields");
-                authoritySubfields.elements().forEachRemaining(subfield -> subfields.add(subfield.asText().charAt(0)));
-                break;
-            }
+            var subfields = new ArrayList<Character>();
+            rule.get("authoritySubfields").elements().forEachRemaining(subfield -> subfields.add(subfield.asText().charAt(0)));
+            rules.put(bibField, subfields);
         }
 
-        return new InstanceLinks.Link(instance.getId(), authority.getId(), field, authorityNaturalId, subfields);
+        return rules;
     }
 }
