@@ -13,6 +13,7 @@ import java.io.File;
 import static org.folio.FolioLinksGeneratorApp.exitWithMessage;
 import static org.folio.model.RecordType.MARC_AUTHORITY;
 import static org.folio.model.RecordType.MARC_BIB;
+import static org.folio.util.FileWorker.deleteFile;
 import static org.folio.util.FileWorker.getMappedResourceFile;
 
 @Service
@@ -52,6 +53,7 @@ public class LinksGenerationService {
 
         linksService.linkRecords(instances, authorities);
         marcConverterService.writeLinkedIds(instances);
+        deleteFile(generatedBibs);
 
         return "Records was successfully linked";
     }

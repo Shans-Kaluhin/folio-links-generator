@@ -28,6 +28,10 @@ public class FileWorker {
         }
     }
 
+    public static boolean deleteFile(Path path) {
+        return path.toFile().delete();
+    }
+
     public static InputStream getResourceFile(String name) {
         try {
             return ResourceUtils.getURL("classpath:" + name).openStream();
