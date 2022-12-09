@@ -1,8 +1,6 @@
 package org.folio.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import org.folio.model.JsonBibToPopulate;
-import org.folio.reference.ReferenceTranslationHolder;
 import org.folio.model.Configuration;
 import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.processor.RuleProcessor;
@@ -10,13 +8,13 @@ import org.folio.processor.referencedata.ReferenceDataWrapperImpl;
 import org.folio.processor.rule.Rule;
 import org.folio.reader.EntityReader;
 import org.folio.reader.JPathSyntaxEntityReader;
+import org.folio.reference.ReferenceTranslationHolder;
 import org.folio.writer.RecordWriter;
 import org.folio.writer.impl.MarcRecordWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -50,15 +48,10 @@ public class MarcConverterService {
         var sampleInstances = populateInstances(configuration.getMarcBibs());
 
         var mrcFile = sampleInstances.stream()
-                .flatMap(sampleBib -> mapInstances(rules, reference, sampleBib).stream())
+                .map(sampleBib -> mapInstance(rules, reference, sampleBib))
                 .toList();
 
         return writeFile(GENERATED_BIBS_FILE, mrcFile);
-    }
-
-    private List<String> mapInstances(List<Rule> rules, ReferenceDataWrapperImpl reference, JsonBibToPopulate sampleBib) {
-       var mrcInstance = mapInstance(rules, reference, sampleBib.getSample());
-       return duplicateStrings(mrcInstance, sampleBib.getTotalCount());
     }
 
     private String mapInstance(List<Rule> rules, ReferenceDataWrapperImpl reference, JsonNode instance) {
@@ -68,14 +61,6 @@ public class MarcConverterService {
         return ruleProcessor.process(entityReader, recordWriter, reference, rules,
                 (a) -> exitWithError("Failed to map mrc record: " + a)
         );
-    }
-
-    private List<String> duplicateStrings(String str, int times) {
-        var strings = new ArrayList<String>();
-        for (int i = 0; i < times; i++) {
-            strings.add(str);
-        }
-        return strings;
     }
 
     private List<Rule> retrieveRules() {
