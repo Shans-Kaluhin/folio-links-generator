@@ -3,7 +3,7 @@ package org.folio.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.folio.model.UploadDefinition;
+import org.folio.model.integration.UploadDefinition;
 import org.folio.util.HttpWorker;
 
 import java.nio.file.Path;

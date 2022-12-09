@@ -3,8 +3,8 @@ package org.folio.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.folio.client.EntitiesLinksClient;
 import org.folio.model.Configuration;
-import org.folio.model.ExternalIdsHolder;
-import org.folio.model.InstanceLinks;
+import org.folio.model.integration.ExternalIdsHolder;
+import org.folio.model.integration.InstanceLinks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

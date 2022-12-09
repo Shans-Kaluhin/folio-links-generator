@@ -1,11 +1,11 @@
 package org.folio.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.folio.model.JsonBibToPopulate;
+import org.folio.reference.ReferenceTranslationHolder;
 import org.folio.model.Configuration;
-import org.folio.model.ExternalIdsHolder;
+import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.processor.RuleProcessor;
-import org.folio.processor.referencedata.JsonObjectWrapper;
 import org.folio.processor.referencedata.ReferenceDataWrapperImpl;
 import org.folio.processor.rule.Rule;
 import org.folio.reader.EntityReader;
@@ -20,17 +20,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.folio.FolioLinksGeneratorApp.exitWithError;
-import static org.folio.util.FileWorker.getJsonObject;
+import static org.folio.reference.SampleInstanceWorker.populateInstances;
 import static org.folio.util.FileWorker.getMappedResourceFile;
 import static org.folio.util.FileWorker.writeFile;
 
 public class MarcConverterService {
     private static final Logger LOG = LoggerFactory.getLogger(MarcConverterService.class);
     private static final String LINKED_INSTANCES_FILE = "linkedInstances.txt";
-    private static final String GENERATED_BIBS_FILE = "generatedBibs.mrc";
+    private static final String GENERATED_BIBS_FILE = "SCRIPT_auto_generated_bibs_for_linking_tests.mrc";
     private final Configuration configuration;
 
     public MarcConverterService(Configuration configuration) {
@@ -47,61 +46,39 @@ public class MarcConverterService {
         LOG.info("Generating bib mrc file...");
 
         var rules = retrieveRules();
-        var reference = retrieveReference();
-        var totalBibs = configuration.getMarcBibs().stream()
-                .mapToInt(Configuration.BibsConfig::totalBibs)
-                .sum();
+        var reference = new ReferenceDataWrapperImpl(new HashMap<>());
+        var sampleInstances = populateInstances(configuration.getMarcBibs());
 
-        var mrcInstances = generateBibs(rules, reference, totalBibs);
+        var mrcFile = sampleInstances.stream()
+                .flatMap(sampleBib -> mapInstances(rules, reference, sampleBib).stream())
+                .toList();
 
-        return writeFile(GENERATED_BIBS_FILE, mrcInstances);
+        return writeFile(GENERATED_BIBS_FILE, mrcFile);
     }
 
-    private List<String> generateBibs(List<Rule> rules, ReferenceDataWrapperImpl reference, int amount) {
-        ObjectNode jsonSample = retrieveSampleInstance();
-
-        List<String> instances = new ArrayList<>();
-        for (int i = 0; i < amount; i++) {
-            var json = jsonSample.deepCopy();
-            var jsonInstance = (ObjectNode) json.get("instance");
-            jsonInstance.put("title", "Generated bib " + i);
-
-            var instance = mapInstance(rules, reference, json);
-            instances.add(instance);
-        }
-        return instances;
+    private List<String> mapInstances(List<Rule> rules, ReferenceDataWrapperImpl reference, JsonBibToPopulate sampleBib) {
+       var mrcInstance = mapInstance(rules, reference, sampleBib.getSample());
+       return duplicateStrings(mrcInstance, sampleBib.getTotalCount());
     }
 
     private String mapInstance(List<Rule> rules, ReferenceDataWrapperImpl reference, JsonNode instance) {
         EntityReader entityReader = new JPathSyntaxEntityReader(instance.toString());
         RecordWriter recordWriter = new MarcRecordWriter();
-        RuleProcessor ruleProcessor = new RuleProcessor();
+        RuleProcessor ruleProcessor = new RuleProcessor(ReferenceTranslationHolder.SET_VALUE);
         return ruleProcessor.process(entityReader, recordWriter, reference, rules,
                 (a) -> exitWithError("Failed to map mrc record: " + a)
         );
     }
 
-    private ReferenceDataWrapperImpl retrieveReference() {
-        var reference = new HashMap<String, Map<String, JsonObjectWrapper>>();
-
-        var instanceTypeMap = new HashMap<String, JsonObjectWrapper>();
-        var instanceTypeJson = new JsonObjectWrapper(retrieveInstanceType());
-        instanceTypeMap.put(instanceTypeJson.getMap().get("id").toString(), instanceTypeJson);
-
-        reference.put("instanceTypes", instanceTypeMap);
-        return new ReferenceDataWrapperImpl(reference);
-    }
-
-    private HashMap retrieveInstanceType() {
-        return getMappedResourceFile("instanceType.json", HashMap.class);
+    private List<String> duplicateStrings(String str, int times) {
+        var strings = new ArrayList<String>();
+        for (int i = 0; i < times; i++) {
+            strings.add(str);
+        }
+        return strings;
     }
 
     private List<Rule> retrieveRules() {
-        var rules = getMappedResourceFile("rulesDefault.json", Rule[].class);
-        return Arrays.asList(rules);
-    }
-
-    private ObjectNode retrieveSampleInstance() {
-        return getJsonObject("sampleInstance.json");
+        return Arrays.asList(getMappedResourceFile("rulesDefault.json", Rule[].class));
     }
 }

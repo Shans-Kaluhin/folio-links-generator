@@ -16,5 +16,5 @@ public class Configuration {
     private String token;
     private List<BibsConfig> marcBibs;
 
-    public record BibsConfig (int totalBibs, List<Integer> linkingFields) {}
+    public record BibsConfig (int totalBibs, List<String> linkingFields) {}
 }

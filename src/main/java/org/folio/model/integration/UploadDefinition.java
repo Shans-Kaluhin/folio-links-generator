@@ -1,4 +1,4 @@
-package org.folio.model;
+package org.folio.model.integration;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

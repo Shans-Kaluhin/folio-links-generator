@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import lombok.SneakyThrows;
-import org.folio.model.InstanceLinks;
+import org.folio.model.integration.InstanceLinks;
 import org.folio.util.HttpWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -2,7 +2,7 @@ package org.folio.service;
 
 import lombok.SneakyThrows;
 import org.folio.client.DataImportClient;
-import org.folio.model.JobStatus;
+import org.folio.model.integration.JobStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,10 +10,10 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
-import static org.folio.model.JobStatus.CANCELLED;
-import static org.folio.model.JobStatus.COMMITTED;
-import static org.folio.model.JobStatus.ERROR;
-import static org.folio.model.JobStatus.FILE_UPLOADED;
+import static org.folio.model.integration.JobStatus.CANCELLED;
+import static org.folio.model.integration.JobStatus.COMMITTED;
+import static org.folio.model.integration.JobStatus.ERROR;
+import static org.folio.model.integration.JobStatus.FILE_UPLOADED;
 
 public class DataImportService {
     private static final Logger LOG = LoggerFactory.getLogger(DataImportService.class);

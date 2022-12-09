@@ -3,7 +3,7 @@ package org.folio.client;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.folio.model.ExternalIdsHolder;
+import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.model.RecordType;
 import org.folio.util.HttpWorker;
 
