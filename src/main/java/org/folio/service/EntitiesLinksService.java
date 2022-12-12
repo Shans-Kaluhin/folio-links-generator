@@ -34,11 +34,11 @@ public class EntitiesLinksService {
 
     private void linkInstances(ExternalIdsHolder authorityHolder, List<ExternalIdsHolder> instances) {
         LOG.info("Linking instances for authority: " + authorityHolder.getId());
-        int instancesAmount = instances.size();
 
         for (Configuration.BibsConfig bibConfig : configuration.getMarcBibs()) {
-            for (int i = 0; i < bibConfig.totalBibs(); i++) {
-                var instanceHolder = instances.get(--instancesAmount);
+            var instancesByTitle = retrieveInstancesBySubfields(instances, bibConfig.linkingFields());
+
+            for (var instanceHolder : instancesByTitle) {
                 var instanceLinks = constructLinks(bibConfig, authorityHolder, instanceHolder);
 
                 linksClient.appendLinks(instanceHolder.getId(), new InstanceLinks(instanceLinks));
@@ -61,6 +61,12 @@ public class EntitiesLinksService {
         var subfields = rules.get(field);
 
         return new InstanceLinks.Link(instanceId, authorityId, field, authorityNaturalId, subfields);
+    }
+
+    private List<ExternalIdsHolder> retrieveInstancesBySubfields(List<ExternalIdsHolder> instances, List<String> subfields) {
+        return instances.stream()
+                .filter(i -> i.getTitle().contains(subfields.toString()))
+                .toList();
     }
 
     private HashMap<String, List<Character>> mapRules(JsonNode jsonNode) {
