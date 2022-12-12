@@ -50,6 +50,7 @@ public class EntitiesLinksService {
         return config.linkingFields().stream()
                 .map(String::valueOf)
                 .map(field -> constructLink(field, authorityHolder, instanceHolder))
+                .filter(l -> l.bibRecordSubfields() != null)
                 .collect(Collectors.toList());
     }
 
