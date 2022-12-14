@@ -1,11 +1,9 @@
 package org.folio.client;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.SneakyThrows;
 import org.folio.model.Configuration;
 import org.folio.util.HttpWorker;
 
-import java.net.http.HttpResponse;
+import static org.folio.util.Mapper.mapResponseToJson;
 
 public class AuthClient {
     private static final String BODY_FORMAT = "{\"username\": \"%s\",\"password\": \"%s\"}";
@@ -26,13 +24,6 @@ public class AuthClient {
 
         httpWorker.verifyStatus(response, 201, "Failed to authorize user");
 
-        return retrieveOkapiToken(response);
-    }
-
-    @SneakyThrows
-    private String retrieveOkapiToken(HttpResponse<String> response) {
-        return new ObjectMapper().readTree(response.body())
-                .findValue("okapiToken")
-                .asText();
+        return mapResponseToJson(response).findValue("okapiToken").asText();
     }
 }

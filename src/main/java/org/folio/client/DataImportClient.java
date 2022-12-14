@@ -1,7 +1,6 @@
 package org.folio.client;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.folio.model.integration.UploadDefinition;
 import org.folio.util.HttpWorker;
@@ -9,9 +8,10 @@ import org.folio.util.HttpWorker;
 import java.nio.file.Path;
 
 import static org.folio.util.FileWorker.getJsonObject;
+import static org.folio.util.Mapper.mapResponseToJson;
+import static org.folio.util.Mapper.mapUploadDefinition;
 
 public class DataImportClient {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String UPLOAD_DEFINITION_BODY = "{\"fileDefinitions\":[{\"size\": 1,\"name\": \"%s\"}]}";
     private static final String UPLOAD_DEFINITION_PATH = "/data-import/uploadDefinitions";
     private static final String UPLOAD_DEFINITION_BY_ID_PATH = "/data-import/uploadDefinitions/%s";
@@ -34,13 +34,7 @@ public class DataImportClient {
 
         httpWorker.verifyStatus(response, 201, "Failed to upload definition");
 
-        var jsonBody = OBJECT_MAPPER.readTree(response.body());
-        var fileDefinitions = jsonBody.findValue("fileDefinitions");
-        var uploadDefinitionId = fileDefinitions.findValue("uploadDefinitionId").asText();
-        var jobExecutionId = fileDefinitions.findValue("jobExecutionId").asText();
-        var fileId = fileDefinitions.findValue("id").asText();
-
-        return new UploadDefinition(uploadDefinitionId, jobExecutionId, fileId, filePath);
+        return mapUploadDefinition(response.body(), filePath);
     }
 
     @SneakyThrows
@@ -52,7 +46,7 @@ public class DataImportClient {
 
         httpWorker.verifyStatus(response, 200, "Failed to get upload definition");
 
-        return OBJECT_MAPPER.readTree(response.body());
+        return mapResponseToJson(response);
     }
 
     @SneakyThrows
@@ -86,8 +80,6 @@ public class DataImportClient {
 
         httpWorker.verifyStatus(response, 200, "Failed to fetching jo status");
 
-        var jsonBody = OBJECT_MAPPER.readTree(response.body());
-
-        return jsonBody.findValue("status").asText();
+        return mapResponseToJson(response).findValue("status").asText();
     }
 }

@@ -1,7 +1,5 @@
 package org.folio.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.model.RecordType;
@@ -10,8 +8,10 @@ import org.folio.util.HttpWorker;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.folio.util.Mapper.mapRecordsToExternalIds;
+import static org.folio.util.Mapper.mapResponseToJson;
+
 public class SRSClient {
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String GET_RECORDS_PATH = "/source-storage/records?snapshotId=%s&recordType=%s&limit=%s&offset=%s";
     private static final String LIMIT = "10";
     private final HttpWorker httpWorker;
@@ -41,16 +41,7 @@ public class SRSClient {
 
         httpWorker.verifyStatus(response, 200, "Failed to get records ids by jobId");
 
-        var externalIds = new ArrayList<ExternalIdsHolder>();
-        var jsonBody = OBJECT_MAPPER.readTree(response.body());
-        var records = jsonBody.findValue("records");
-
-        for (JsonNode record : records) {
-            var idsHolder = ExternalIdsHolder.map(record, recordType);
-            externalIds.add(idsHolder);
-        }
-
-        return externalIds;
+        return mapRecordsToExternalIds(response.body(), recordType);
     }
 
     @SneakyThrows
@@ -62,8 +53,6 @@ public class SRSClient {
 
         httpWorker.verifyStatus(response, 200, "Failed to get records ids by jobId");
 
-        var jsonBody = OBJECT_MAPPER.readTree(response.body());
-
-        return jsonBody.findValue("totalRecords").asInt();
+        return mapResponseToJson(response).findValue("totalRecords").asInt();
     }
 }

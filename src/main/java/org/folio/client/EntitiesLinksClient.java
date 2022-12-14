@@ -1,6 +1,5 @@
 package org.folio.client;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.gson.Gson;
 import lombok.SneakyThrows;
@@ -9,9 +8,13 @@ import org.folio.util.HttpWorker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
+import java.util.List;
+
+import static org.folio.util.Mapper.mapRules;
+
 public class EntitiesLinksClient {
     private static final Logger LOG = LoggerFactory.getLogger(EntitiesLinksClient.class);
-    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     private static final String GET_LINKING_RULES_PATH = "/linking-rules/instance-authority";
     private static final String INSTANCE_LINKS_PATH = "/links/instances/%s";
     private final HttpWorker httpWorker;
@@ -47,13 +50,13 @@ public class EntitiesLinksClient {
     }
 
     @SneakyThrows
-    public JsonNode getLinkedRules() {
+    public HashMap<String, List<Character>> getLinkedRules() {
         LOG.info("Retrieving linking rules...");
         var request = httpWorker.constructGETRequest(GET_LINKING_RULES_PATH);
         var response = httpWorker.sendRequest(request);
 
         httpWorker.verifyStatus(response, 200, "Failed to get linking rules");
 
-        return OBJECT_MAPPER.readTree(response.body());
+        return mapRules(response.body());
     }
 }
