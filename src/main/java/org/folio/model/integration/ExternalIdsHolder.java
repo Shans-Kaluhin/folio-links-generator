@@ -1,19 +1,22 @@
 package org.folio.model.integration;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ArrayNode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.folio.model.RecordType;
+import org.folio.model.MarcField;
+
+import java.util.List;
 
 @Getter
 @AllArgsConstructor
 public class ExternalIdsHolder {
     private String id;
     private String hrid;
-    private ArrayNode fields;
+    private List<MarcField> fields;
 
     public String getTitle() {
-        return "";
+        var title = fields.stream()
+                .filter(b -> b.getTag().equals("245"))
+                .map(b -> b.getSubfields().get('a')).findFirst();
+        return title.orElse(null);
     }
 }

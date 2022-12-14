@@ -34,7 +34,7 @@ public class LinksGenerationService {
         srsClient = new SRSClient(httpWorker);
         importService = new DataImportService(importClient);
         linksService = new EntitiesLinksService(configuration, linksClient);
-        marcConverterService = new MarcConverterService(configuration);
+        marcConverterService = new MarcConverterService(configuration, linksClient);
 
         httpWorker.setOkapiToken(authClient.authorize());
 
@@ -43,16 +43,15 @@ public class LinksGenerationService {
     }
 
     private String link(File authorityMrcFile) {
-        var generatedBibs = marcConverterService.generateBibs();
-
-        var bibJobId = importService.importBibs(generatedBibs);
         var authorityJobId = importService.importAuthority(authorityMrcFile);
-
-        var instances = srsClient.retrieveExternalIdsHolders(bibJobId, MARC_BIB);
         var authorities = srsClient.retrieveExternalIdsHolders(authorityJobId, MARC_AUTHORITY);
 
+        var generatedBibs = marcConverterService.generateBibs(authorities);
+
+        var bibJobId = importService.importBibs(generatedBibs);
+        var instances = srsClient.retrieveExternalIdsHolders(bibJobId, MARC_BIB);
+
         linksService.linkRecords(instances, authorities);
-        marcConverterService.writeLinkedIds(instances);
         deleteFile(generatedBibs);
 
         return "Records was successfully linked";

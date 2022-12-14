@@ -1,8 +1,8 @@
 package org.folio.client;
 
 import lombok.SneakyThrows;
-import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.model.RecordType;
+import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.util.HttpWorker;
 
 import java.util.ArrayList;

@@ -18,6 +18,7 @@ public class EntitiesLinksClient {
     private static final String GET_LINKING_RULES_PATH = "/linking-rules/instance-authority";
     private static final String INSTANCE_LINKS_PATH = "/links/instances/%s";
     private final HttpWorker httpWorker;
+    private HashMap<String, List<Character>> rules;
 
     public EntitiesLinksClient(HttpWorker httpWorker) {
         this.httpWorker = httpWorker;
@@ -51,12 +52,15 @@ public class EntitiesLinksClient {
 
     @SneakyThrows
     public HashMap<String, List<Character>> getLinkedRules() {
-        LOG.info("Retrieving linking rules...");
-        var request = httpWorker.constructGETRequest(GET_LINKING_RULES_PATH);
-        var response = httpWorker.sendRequest(request);
+        if (rules == null) {
+            LOG.info("Retrieving linking rules...");
+            var request = httpWorker.constructGETRequest(GET_LINKING_RULES_PATH);
+            var response = httpWorker.sendRequest(request);
 
-        httpWorker.verifyStatus(response, 200, "Failed to get linking rules");
+            httpWorker.verifyStatus(response, 200, "Failed to get linking rules");
 
-        return mapRules(response.body());
+            rules = mapRules(response.body());
+        }
+        return rules;
     }
 }
