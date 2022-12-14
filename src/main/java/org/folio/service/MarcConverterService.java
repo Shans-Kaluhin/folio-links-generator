@@ -106,9 +106,11 @@ public class MarcConverterService {
 
     private void setLinkingSubfields(ExternalIdsHolder authority) {
         var authorityId = authority.getId();
-        var naturalId = ID_LOC_GOV + authority.getHrid().replaceAll("\\s", "");
+        var naturalId = ID_LOC_GOV + authority.getNaturalId();
 
-        authority.getFields().forEach(f -> f.getSubfields().putAll(Map.of('0', naturalId, '9', authorityId)));
+        authority.getFields().forEach(f -> f.getSubfields()
+                .putAll(Map.of('0', naturalId,
+                               '9', authorityId)));
     }
 
     private MarcField getNameMarcField(List<String> fields, int i) {

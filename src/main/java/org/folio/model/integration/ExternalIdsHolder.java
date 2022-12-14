@@ -19,4 +19,11 @@ public class ExternalIdsHolder {
                 .map(b -> b.getSubfields().get('a')).findFirst();
         return title.orElse(null);
     }
+
+    public String getNaturalId() {
+        var naturalId = fields.stream()
+                .filter(b -> b.getTag().equals("010"))
+                .map(b -> b.getSubfields().get('a')).findFirst();
+        return naturalId.orElse(hrid).replaceAll("\\s", "");
+    }
 }
