@@ -63,15 +63,16 @@ public class MarcConverterService {
         List<MarcField> marcFields = new ArrayList<>();
 
         for (var requiredField : linkingFields) {
-            var authorityField = authorityFields.get(requiredField);
-            var ruleSubfields = linksClient.getLinkedRules().get(requiredField);
+            var linkingRule = linksClient.getLinkedRules().get(requiredField);
 
-            if (authorityField != null) {
-                if (ruleSubfields != null) {
-                    marcFields.addAll(authorityField);
-                } else {
-                    LOG.info("Field {} was skipped as it does not comply with linked rules", requiredField);
+            if (linkingRule != null) {
+                var authorityField = authorityFields.get(linkingRule.getAuthorityField());
+                if (authorityField != null) {
+                    var bibField = authorityField.stream().map(m -> m.copyWithTag(linkingRule.getBibField())).toList();
+                    marcFields.addAll(bibField);
                 }
+            } else {
+                LOG.info("Field {} was skipped as it does not comply with linked rules", requiredField);
             }
         }
 
@@ -110,7 +111,7 @@ public class MarcConverterService {
 
         authority.getFields().forEach(f -> f.getSubfields()
                 .putAll(Map.of('0', naturalId,
-                               '9', authorityId)));
+                        '9', authorityId)));
     }
 
     private MarcField getNameMarcField(List<String> fields, int i) {

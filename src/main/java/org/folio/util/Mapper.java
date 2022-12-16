@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import lombok.SneakyThrows;
+import org.folio.model.LinkingRule;
 import org.folio.model.MarcField;
 import org.folio.model.RecordType;
 import org.folio.model.integration.ExternalIdsHolder;
@@ -30,15 +31,16 @@ public class Mapper {
     }
 
     @SneakyThrows
-    public static HashMap<String, List<Character>> mapRules(String json) {
-        var rules = new HashMap<String, List<Character>>();
+    public static HashMap<String, LinkingRule> mapRules(String json) {
+        var rules = new HashMap<String, LinkingRule>();
         var jsonNode = OBJECT_MAPPER.readTree(json);
 
         for (JsonNode rule : jsonNode) {
             var bibField = rule.get("bibField").asText();
+            var authorityField = rule.get("authorityField").asText();
             var subfields = new ArrayList<Character>();
             rule.get("authoritySubfields").elements().forEachRemaining(subfield -> subfields.add(subfield.asText().charAt(0)));
-            rules.put(bibField, subfields);
+            rules.put(bibField, new LinkingRule(bibField, authorityField, subfields));
         }
 
         return rules;

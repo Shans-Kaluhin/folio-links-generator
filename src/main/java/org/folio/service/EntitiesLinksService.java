@@ -52,7 +52,7 @@ public class EntitiesLinksService {
         var instanceId = instanceHolder.getId();
         var authorityId = authorityHolder.getId();
         var authorityNaturalId = authorityHolder.getNaturalId();
-        var subfields = linksClient.getLinkedRules().get(field);
+        var subfields = linksClient.getLinkedRules().get(field).getSubfields();
 
         return new InstanceLinks.Link(instanceId, authorityId, field, authorityNaturalId, subfields);
     }
