@@ -3,6 +3,7 @@ package org.folio.model;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Getter
@@ -14,6 +15,6 @@ public class MarcField {
     private Map<Character, String> subfields;
 
     public MarcField copyWithTag(String newTag){
-        return new MarcField(newTag, ind1, ind2, subfields);
+        return new MarcField(newTag, ind1, ind2, new HashMap<>(subfields));
     }
 }
