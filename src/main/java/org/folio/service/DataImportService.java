@@ -13,7 +13,6 @@ import java.util.concurrent.TimeUnit;
 import static org.folio.model.integration.JobStatus.CANCELLED;
 import static org.folio.model.integration.JobStatus.COMMITTED;
 import static org.folio.model.integration.JobStatus.ERROR;
-import static org.folio.model.integration.JobStatus.FILE_UPLOADED;
 
 public class DataImportService {
     private static final Logger LOG = LoggerFactory.getLogger(DataImportService.class);
@@ -29,8 +28,6 @@ public class DataImportService {
         LOG.info("Import authority job id: " + uploadDefinition.getJobExecutionId());
 
         dataImportClient.uploadFile(uploadDefinition);
-        waitStatus(uploadDefinition.getJobExecutionId(), FILE_UPLOADED);
-
         dataImportClient.uploadJobProfile(uploadDefinition, "createAuthority.json");
         waitStatus(uploadDefinition.getJobExecutionId(), COMMITTED);
 
@@ -43,8 +40,6 @@ public class DataImportService {
         LOG.info("Import bibs job id: " + uploadDefinition.getJobExecutionId());
 
         dataImportClient.uploadFile(uploadDefinition);
-        waitStatus(uploadDefinition.getJobExecutionId(), FILE_UPLOADED);
-
         dataImportClient.uploadJobProfile(uploadDefinition, "createInstance.json");
         waitStatus(uploadDefinition.getJobExecutionId(), COMMITTED);
 

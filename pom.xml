@@ -40,29 +40,15 @@
             </exclusions>
         </dependency>
         <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-lang3</artifactId>
-        </dependency>
-        <dependency>
             <groupId>org.folio</groupId>
             <artifactId>generate-marc-utils</artifactId>
             <version>1.5.0</version>
             <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>org.marc4j</groupId>
-            <artifactId>marc4j</artifactId>
-            <version>2.9.2</version>
-        </dependency>
-        <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.10</version>
         </dependency>
     </dependencies>
 
@@ -83,5 +69,4 @@
             </plugin>
         </plugins>
     </build>
-
 </project>
