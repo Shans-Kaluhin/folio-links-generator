@@ -30,11 +30,12 @@ public class LinksGenerationService {
         var authClient = new AuthClient(configuration, httpWorker);
         var linksClient = new EntitiesLinksClient(httpWorker);
         var importClient = new DataImportClient(httpWorker);
+        var linkingRuleService = new LinkingRuleService(linksClient);
 
         srsClient = new SRSClient(httpWorker);
         importService = new DataImportService(importClient);
         linksService = new EntitiesLinksService(configuration, linksClient);
-        marcConverterService = new MarcConverterService(configuration, linksClient);
+        marcConverterService = new MarcConverterService(configuration, linkingRuleService);
 
         httpWorker.setOkapiToken(authClient.authorize());
 
@@ -43,7 +44,7 @@ public class LinksGenerationService {
     }
 
     private String link(File authorityMrcFile) {
-        var authorityJobId = importService.importAuthority(authorityMrcFile);
+        var authorityJobId = "b00ac9d2-6e06-4573-b88f-86eb35216ce1";
         var authorities = srsClient.retrieveExternalIdsHolders(authorityJobId, MARC_AUTHORITY);
 
         var generatedBibs = marcConverterService.generateBibs(authorities);

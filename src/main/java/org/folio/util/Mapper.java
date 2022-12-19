@@ -5,10 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import lombok.SneakyThrows;
-import org.folio.model.LinkingRule;
 import org.folio.model.MarcField;
 import org.folio.model.RecordType;
 import org.folio.model.integration.ExternalIdsHolder;
+import org.folio.model.integration.LinkingRule;
+import org.folio.model.integration.LinkingRule.SubfieldModification;
+import org.folio.model.integration.LinkingRule.Validation;
 import org.folio.model.integration.UploadDefinition;
 import org.folio.processor.rule.DataSource;
 import org.folio.reader.values.CompositeValue;
@@ -38,12 +40,49 @@ public class Mapper {
         for (JsonNode rule : jsonNode) {
             var bibField = rule.get("bibField").asText();
             var authorityField = rule.get("authorityField").asText();
-            var subfields = new ArrayList<Character>();
-            rule.get("authoritySubfields").elements().forEachRemaining(subfield -> subfields.add(subfield.asText().charAt(0)));
-            rules.put(bibField, new LinkingRule(bibField, authorityField, subfields));
+            var subfields = mapSubfields(rule);
+            var validation = mapValidation(rule);
+            var modifications = mapModifications(rule);
+            rules.put(bibField, new LinkingRule(bibField, authorityField, subfields, validation, modifications));
         }
 
         return rules;
+    }
+
+    private static List<Character> mapSubfields(JsonNode json) {
+        var subfields = new ArrayList<Character>();
+        var jsonSubfields = json.get("authoritySubfields");
+
+        if (jsonSubfields != null) {
+            jsonSubfields.elements()
+                    .forEachRemaining(subfield -> subfields.add(subfield.asText().charAt(0)));
+        }
+        return subfields;
+    }
+
+    private static List<SubfieldModification> mapModifications(JsonNode json) {
+        var modifications = new ArrayList<SubfieldModification>();
+        var jsonModifications = json.get("subfieldModifications");
+
+        if (jsonModifications != null) {
+            jsonModifications.elements()
+                    .forEachRemaining(subfield -> modifications.add(new SubfieldModification(
+                            subfield.get("source").asText().charAt(0), subfield.get("target").asText().charAt(0))));
+        }
+        return modifications;
+    }
+
+    private static List<Validation> mapValidation(JsonNode json) {
+        var validation = new ArrayList<Validation>();
+        var jsonValidation = json.get("validation");
+
+        if (jsonValidation != null) {
+            jsonValidation.get("existence").elements()
+                    .forEachRemaining(existence -> existence.fields().forEachRemaining(sub ->
+                            validation.add(new Validation(sub.getKey().charAt(0), sub.getValue().asBoolean()))
+                    ));
+        }
+        return validation;
     }
 
     @SneakyThrows

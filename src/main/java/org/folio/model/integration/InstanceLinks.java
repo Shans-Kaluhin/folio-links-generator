@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @AllArgsConstructor
@@ -14,6 +15,6 @@ public class InstanceLinks {
                        String authorityId,
                        String bibRecordTag,
                        String authorityNaturalId,
-                       List<Character> bibRecordSubfields) {
+                       Set<Character> bibRecordSubfields) {
     }
 }

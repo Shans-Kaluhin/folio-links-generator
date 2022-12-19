@@ -1,14 +1,11 @@
 package org.folio.service;
 
-import org.folio.client.EntitiesLinksClient;
 import org.folio.model.Configuration;
 import org.folio.model.MarcField;
 import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.processor.translations.Translation;
 import org.folio.writer.RecordWriter;
 import org.folio.writer.impl.MarcRecordWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -20,20 +17,17 @@ import static org.folio.util.FileWorker.writeFile;
 import static org.folio.util.Mapper.mapToCompositeValue;
 
 public class MarcConverterService {
-    private static final Logger LOG = LoggerFactory.getLogger(MarcConverterService.class);
     private static final String GENERATED_BIBS_FILE = "SCRIPT_auto_generated_bibs_for_linking_tests.mrc";
-    private static final String ID_LOC_GOV = "https://id.loc.gov/authorities/names/";
-    private final EntitiesLinksClient linksClient;
+    private final LinkingRuleService linkingRuleService;
     private final Configuration configuration;
 
-    public MarcConverterService(Configuration configuration, EntitiesLinksClient linksClient) {
+    public MarcConverterService(Configuration configuration, LinkingRuleService linkingRuleService) {
         this.configuration = configuration;
-        this.linksClient = linksClient;
+        this.linkingRuleService = linkingRuleService;
     }
 
     public Path generateBibs(List<ExternalIdsHolder> authorities) {
         var mrcFile = new ArrayList<String>();
-        authorities.forEach(this::setLinkingSubfields);
         var authoritiesFields = mergeAuthoritiesFields(authorities);
 
         for (var config : configuration.getMarcBibs()) {
@@ -60,27 +54,24 @@ public class MarcConverterService {
     }
 
     private List<MarcField> mapFieldsAndFilterByRules(Map<String, List<MarcField>> authorityFields, List<String> linkingFields) {
-        List<MarcField> marcFields = new ArrayList<>();
+        var marcFields = new ArrayList<MarcField>();
+        var fieldsToRemove = new ArrayList<String>();
 
         for (var requiredField : linkingFields) {
-            var linkingRule = linksClient.getLinkedRules().get(requiredField);
-
-            if (linkingRule != null) {
-                var authorityField = authorityFields.get(linkingRule.getAuthorityField());
-                if (authorityField != null) {
-                    var bibField = authorityField.stream().map(m -> m.copyWithTag(linkingRule.getBibField())).toList();
-                    marcFields.addAll(bibField);
-                }
-            } else {
-                LOG.info("Field {} was skipped as it does not comply with linked rules", requiredField);
+            var bibFields = linkingRuleService.constructBibFields(requiredField, authorityFields);
+            if (bibFields.isEmpty()) {
+                fieldsToRemove.add(requiredField);
             }
+            marcFields.addAll(bibFields);
         }
+        linkingFields.removeAll(fieldsToRemove);
 
         return marcFields;
     }
 
     private Map<String, List<MarcField>> mergeAuthoritiesFields(List<ExternalIdsHolder> authorities) {
         var merged = new HashMap<String, List<MarcField>>();
+        authorities.forEach(linkingRuleService::setLinkingSubfields);
         authorities.stream()
                 .flatMap(authority -> authority.getFields().stream())
                 .forEach(field -> {
@@ -103,15 +94,6 @@ public class MarcConverterService {
                 "position18", "c",
                 "position19", " "));
         return leaderTranslation;
-    }
-
-    private void setLinkingSubfields(ExternalIdsHolder authority) {
-        var authorityId = authority.getId();
-        var naturalId = ID_LOC_GOV + authority.getNaturalId();
-
-        authority.getFields().forEach(f -> f.getSubfields()
-                .putAll(Map.of('0', naturalId,
-                        '9', authorityId)));
     }
 
     private MarcField getNameMarcField(List<String> fields, int i) {

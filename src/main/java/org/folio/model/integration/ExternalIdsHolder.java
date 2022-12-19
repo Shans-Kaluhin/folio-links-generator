@@ -13,17 +13,27 @@ public class ExternalIdsHolder {
     private String hrid;
     private List<MarcField> fields;
 
+    public MarcField getField(String tag) {
+        return fields.stream()
+                .filter(b -> b.getTag().equals(tag))
+                .findFirst()
+                .orElse(null);
+    }
+
     public String getTitle() {
-        var title = fields.stream()
+        return fields.stream()
                 .filter(b -> b.getTag().equals("245"))
-                .map(b -> b.getSubfields().get('a')).findFirst();
-        return title.orElse(null);
+                .map(b -> b.getSubfields().get('a'))
+                .findFirst()
+                .orElse(null);
     }
 
     public String getNaturalId() {
-        var naturalId = fields.stream()
+        return fields.stream()
                 .filter(b -> b.getTag().equals("010"))
-                .map(b -> b.getSubfields().get('a')).findFirst();
-        return naturalId.orElse(hrid).replaceAll("\\s", "");
+                .map(b -> b.getSubfields().get('a'))
+                .findFirst()
+                .orElse(hrid)
+                .replaceAll("\\s", "");
     }
 }

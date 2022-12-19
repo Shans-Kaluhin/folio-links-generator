@@ -1,9 +1,8 @@
 package org.folio.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.gson.Gson;
 import lombok.SneakyThrows;
-import org.folio.model.LinkingRule;
+import org.folio.model.integration.LinkingRule;
 import org.folio.model.integration.InstanceLinks;
 import org.folio.util.HttpWorker;
 import org.slf4j.Logger;
@@ -22,21 +21,6 @@ public class EntitiesLinksClient {
 
     public EntitiesLinksClient(HttpWorker httpWorker) {
         this.httpWorker = httpWorker;
-    }
-
-    @SneakyThrows
-    public void appendLinks(String instanceId, InstanceLinks newLinks) {
-        var uri = String.format(INSTANCE_LINKS_PATH, instanceId);
-
-        var request = httpWorker.constructGETRequest(uri);
-        var response = httpWorker.sendRequest(request);
-
-        httpWorker.verifyStatus(response, 200, "Failed to get linking rules");
-
-        var oldLinks = new Gson().fromJson(response.body(), InstanceLinks.class);
-        newLinks.getLinks().addAll(oldLinks.getLinks());
-
-        link(instanceId, newLinks);
     }
 
     @SneakyThrows

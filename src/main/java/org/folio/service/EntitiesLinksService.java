@@ -7,8 +7,9 @@ import org.folio.model.integration.InstanceLinks;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 public class EntitiesLinksService {
     private static final Logger LOG = LoggerFactory.getLogger(EntitiesLinksService.class);
@@ -21,38 +22,43 @@ public class EntitiesLinksService {
     }
 
     public void linkRecords(List<ExternalIdsHolder> instances, List<ExternalIdsHolder> authorities) {
-        for (ExternalIdsHolder authorityHolder : authorities) {
-            linkInstances(authorityHolder, instances);
-        }
-    }
-
-    private void linkInstances(ExternalIdsHolder authorityHolder, List<ExternalIdsHolder> instances) {
-        LOG.info("Linking instances for authority: " + authorityHolder.getId());
-
         for (Configuration.BibsConfig bibConfig : configuration.getMarcBibs()) {
             var instancesByTitle = retrieveInstancesBySubfields(instances, bibConfig.linkingFields());
 
             for (var instanceHolder : instancesByTitle) {
-                var instanceLinks = constructLinks(bibConfig, authorityHolder, instanceHolder);
+                var instanceId = instanceHolder.getId();
+                var instanceLinks = constructLinks(bibConfig, authorities, instanceHolder);
 
-                linksClient.appendLinks(instanceHolder.getId(), new InstanceLinks(instanceLinks));
+                LOG.info("Linking all authorities for instance: {}", instanceId);
+                linksClient.link(instanceId, new InstanceLinks(instanceLinks));
             }
         }
     }
 
-    private List<InstanceLinks.Link> constructLinks(Configuration.BibsConfig config, ExternalIdsHolder authorityHolder, ExternalIdsHolder instanceHolder) {
-        return config.linkingFields().stream()
-                .map(String::valueOf)
-                .map(field -> constructLink(field, authorityHolder, instanceHolder))
-                .filter(l -> l.bibRecordSubfields() != null)
-                .collect(Collectors.toList());
+    private List<InstanceLinks.Link> constructLinks(Configuration.BibsConfig config, List<ExternalIdsHolder> authorities, ExternalIdsHolder instanceHolder) {
+        var links = new ArrayList<InstanceLinks.Link>();
+
+        for (var authorityHolder : authorities) {
+            config.linkingFields().stream()
+                    .map(field -> constructLink(field, authorityHolder, instanceHolder))
+                    .filter(Objects::nonNull)
+                    .forEach(links::add);
+        }
+        return links;
     }
 
     private InstanceLinks.Link constructLink(String field, ExternalIdsHolder authorityHolder, ExternalIdsHolder instanceHolder) {
         var instanceId = instanceHolder.getId();
         var authorityId = authorityHolder.getId();
         var authorityNaturalId = authorityHolder.getNaturalId();
-        var subfields = linksClient.getLinkedRules().get(field).getSubfields();
+        var marcField = instanceHolder.getField(field);
+
+        if (marcField == null){
+            return null;
+        }
+
+        var subfields = marcField.getSubfields().keySet();
+        subfields.removeAll(List.of('0', '9'));
 
         return new InstanceLinks.Link(instanceId, authorityId, field, authorityNaturalId, subfields);
     }
