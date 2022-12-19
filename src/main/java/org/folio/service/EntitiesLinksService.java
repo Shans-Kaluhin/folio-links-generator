@@ -30,12 +30,12 @@ public class EntitiesLinksService {
                 var instanceLinks = constructLinks(bibConfig, authorities, instanceHolder);
 
                 LOG.info("Linking all authorities for instance: {}", instanceId);
-                linksClient.link(instanceId, new InstanceLinks(instanceLinks));
+                linksClient.link(instanceId, instanceLinks);
             }
         }
     }
 
-    private List<InstanceLinks.Link> constructLinks(Configuration.BibsConfig config, List<ExternalIdsHolder> authorities, ExternalIdsHolder instanceHolder) {
+    private InstanceLinks constructLinks(Configuration.BibsConfig config, List<ExternalIdsHolder> authorities, ExternalIdsHolder instanceHolder) {
         var links = new ArrayList<InstanceLinks.Link>();
 
         for (var authorityHolder : authorities) {
@@ -44,7 +44,7 @@ public class EntitiesLinksService {
                     .filter(Objects::nonNull)
                     .forEach(links::add);
         }
-        return links;
+        return new InstanceLinks(links);
     }
 
     private InstanceLinks.Link constructLink(String field, ExternalIdsHolder authorityHolder, ExternalIdsHolder instanceHolder) {
@@ -53,14 +53,10 @@ public class EntitiesLinksService {
         var authorityNaturalId = authorityHolder.getNaturalId();
         var marcField = instanceHolder.getField(field);
 
-        if (marcField == null){
+        if (marcField == null) {
             return null;
         }
-
-        var subfields = marcField.getSubfields().keySet();
-        subfields.removeAll(List.of('0', '9'));
-
-        return new InstanceLinks.Link(instanceId, authorityId, field, authorityNaturalId, subfields);
+        return new InstanceLinks.Link(instanceId, authorityId, field, authorityNaturalId, marcField.getSubfields().keySet());
     }
 
     private List<ExternalIdsHolder> retrieveInstancesBySubfields(List<ExternalIdsHolder> instances, List<String> subfields) {

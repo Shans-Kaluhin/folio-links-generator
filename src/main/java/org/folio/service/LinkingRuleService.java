@@ -40,14 +40,16 @@ public class LinkingRuleService {
         for (var linkingRule : linkingRules) {
             var authorityFields = authorityMergedFields.get(linkingRule.getAuthorityField());
 
-            for (var authorityField : authorityFields) {
-                if (isViolateExistence(linkingRule, authorityField, requiredField)) {
-                    continue;
-                }
+            if (authorityFields != null) {
+                for (var authorityField : authorityFields) {
+                    if (isViolateExistence(linkingRule, authorityField, requiredField)) {
+                        continue;
+                    }
 
-                var bibMarcField = authorityField.copyWithTag(linkingRule.getBibField());
-                modifySubfields(linkingRule, bibMarcField);
-                bibMarcFields.add(bibMarcField);
+                    var bibMarcField = authorityField.copyWithTag(linkingRule.getBibField());
+                    modifySubfields(linkingRule, bibMarcField);
+                    bibMarcFields.add(bibMarcField);
+                }
             }
         }
 

@@ -131,7 +131,9 @@ public class Mapper {
         for (var authoritySubfield : authoritySubfields) {
             authoritySubfield.fields().forEachRemaining(e -> {
                 Character subfield = e.getKey().charAt(0);
-                bibSubfields.put(subfield, e.getValue().asText());
+                if (!(subfield.equals('0') || subfield.equals('9'))) {
+                    bibSubfields.put(subfield, e.getValue().asText());
+                }
             });
         }
 
