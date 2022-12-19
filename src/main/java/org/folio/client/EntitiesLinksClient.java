@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
+import java.util.List;
 
 import static org.folio.util.Mapper.mapRules;
 
@@ -17,7 +18,7 @@ public class EntitiesLinksClient {
     private static final String GET_LINKING_RULES_PATH = "/linking-rules/instance-authority";
     private static final String INSTANCE_LINKS_PATH = "/links/instances/%s";
     private final HttpWorker httpWorker;
-    private HashMap<String, LinkingRule> rules;
+    private HashMap<String, List<LinkingRule>> rules;
 
     public EntitiesLinksClient(HttpWorker httpWorker) {
         this.httpWorker = httpWorker;
@@ -35,7 +36,7 @@ public class EntitiesLinksClient {
     }
 
     @SneakyThrows
-    public HashMap<String, LinkingRule> getLinkedRules() {
+    public HashMap<String, List<LinkingRule>> getLinkedRules() {
         if (rules == null) {
             LOG.info("Retrieving linking rules...");
             var request = httpWorker.constructGETRequest(GET_LINKING_RULES_PATH);

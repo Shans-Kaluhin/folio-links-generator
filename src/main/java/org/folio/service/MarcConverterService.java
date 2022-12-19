@@ -31,11 +31,11 @@ public class MarcConverterService {
         var authoritiesFields = mergeAuthoritiesFields(authorities);
 
         for (var config : configuration.getMarcBibs()) {
-            for (int i = 0; i < config.totalBibs(); i++) {
-                var marcBibFields = mapFieldsAndFilterByRules(authoritiesFields, config.linkingFields());
-                marcBibFields.add(getNameMarcField(config.linkingFields(), i));
-                marcBibFields.add(getInstanceTypeField());
+            var marcBibFields = mapFieldsAndFilterByRules(authoritiesFields, config.linkingFields());
+            marcBibFields.add(getNameMarcField(config.linkingFields()));
+            marcBibFields.add(getInstanceTypeField());
 
+            for (int i = 0; i < config.totalBibs(); i++) {
                 var instance = createInstance(marcBibFields);
                 mrcFile.add(instance);
             }
@@ -59,13 +59,14 @@ public class MarcConverterService {
 
         for (var requiredField : linkingFields) {
             var bibFields = linkingRuleService.constructBibFields(requiredField, authorityFields);
-            if (bibFields.isEmpty()) {
+            if (bibFields == null) {
                 fieldsToRemove.add(requiredField);
+            } else {
+                marcFields.addAll(bibFields);
             }
-            marcFields.addAll(bibFields);
         }
-        linkingFields.removeAll(fieldsToRemove);
 
+        linkingFields.removeAll(fieldsToRemove);
         return marcFields;
     }
 
@@ -96,8 +97,8 @@ public class MarcConverterService {
         return leaderTranslation;
     }
 
-    private MarcField getNameMarcField(List<String> fields, int i) {
-        var name = String.format("Generated bib #%s. Linked: %s", i, fields);
+    private MarcField getNameMarcField(List<String> fields) {
+        var name = String.format("Generated bib. Linked: %s", fields);
         return new MarcField("245", "0", "0", Map.of('a', name));
     }
 

@@ -8,7 +8,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -32,21 +31,24 @@ public class LinkingRuleService {
     public List<MarcField> constructBibFields(String requiredField, Map<String, List<MarcField>> authorityMergedFields) {
         var bibMarcFields = new ArrayList<MarcField>();
 
-        var linkingRule = linksClient.getLinkedRules().get(requiredField);
-        if (linkingRule == null) {
+        var linkingRules = linksClient.getLinkedRules().get(requiredField);
+        if (linkingRules == null) {
             LOG.info("Field {} was skipped as it does not comply with linked rules", requiredField);
-            return Collections.emptyList();
+            return null;
         }
 
-        var authorityFields = authorityMergedFields.get(linkingRule.getAuthorityField());
-        for (var authorityField : authorityFields) {
-            if (isViolateExistence(linkingRule, authorityField)) {
-                continue;
-            }
+        for (var linkingRule : linkingRules) {
+            var authorityFields = authorityMergedFields.get(linkingRule.getAuthorityField());
 
-            var bibMarcField = authorityField.copyWithTag(linkingRule.getBibField());
-            modifySubfields(linkingRule, bibMarcField);
-            bibMarcFields.add(bibMarcField);
+            for (var authorityField : authorityFields) {
+                if (isViolateExistence(linkingRule, authorityField, requiredField)) {
+                    continue;
+                }
+
+                var bibMarcField = authorityField.copyWithTag(linkingRule.getBibField());
+                modifySubfields(linkingRule, bibMarcField);
+                bibMarcFields.add(bibMarcField);
+            }
         }
 
         return bibMarcFields;
@@ -67,7 +69,7 @@ public class LinkingRuleService {
         }
     }
 
-    private boolean isViolateExistence(LinkingRule linkingRule, MarcField authorityField) {
+    private boolean isViolateExistence(LinkingRule linkingRule, MarcField authorityField, String requiredField) {
         var existenceValidations = linkingRule.getValidation();
 
         if (!existenceValidations.isEmpty()) {
@@ -76,8 +78,9 @@ public class LinkingRuleService {
                 var isExist = subfields.get(validation.subfield()) != null;
 
                 if (isExist != validation.existence()) {
-                    LOG.info("Authority {}. Field {} was not linked. Subfield '{}' is {}",
+                    LOG.info("Authority {}. Fields {} -> {} was not linked. Subfield '{}' is {}",
                             authorityField.getSubfields().get('9'),
+                            requiredField,
                             authorityField.getTag(),
                             validation.subfield(),
                             isExist ? "NOT required" : "required");

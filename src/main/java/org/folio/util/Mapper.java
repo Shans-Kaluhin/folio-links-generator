@@ -33,8 +33,8 @@ public class Mapper {
     }
 
     @SneakyThrows
-    public static HashMap<String, LinkingRule> mapRules(String json) {
-        var rules = new HashMap<String, LinkingRule>();
+    public static HashMap<String, List<LinkingRule>> mapRules(String json) {
+        var rules = new HashMap<String, List<LinkingRule>>();
         var jsonNode = OBJECT_MAPPER.readTree(json);
 
         for (JsonNode rule : jsonNode) {
@@ -43,7 +43,16 @@ public class Mapper {
             var subfields = mapSubfields(rule);
             var validation = mapValidation(rule);
             var modifications = mapModifications(rule);
-            rules.put(bibField, new LinkingRule(bibField, authorityField, subfields, validation, modifications));
+            var linkingRule = new LinkingRule(bibField, authorityField, subfields, validation, modifications);
+
+            var existRules = rules.get(bibField);
+            if (existRules != null) {
+                existRules.add(linkingRule);
+            } else {
+                var list = new ArrayList<LinkingRule>();
+                list.add(linkingRule);
+                rules.put(bibField, list);
+            }
         }
 
         return rules;

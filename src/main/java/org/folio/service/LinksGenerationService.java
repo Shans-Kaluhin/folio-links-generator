@@ -44,7 +44,7 @@ public class LinksGenerationService {
     }
 
     private String link(File authorityMrcFile) {
-        var authorityJobId = "b00ac9d2-6e06-4573-b88f-86eb35216ce1";
+        var authorityJobId = importService.importAuthority(authorityMrcFile);
         var authorities = srsClient.retrieveExternalIdsHolders(authorityJobId, MARC_AUTHORITY);
 
         var generatedBibs = marcConverterService.generateBibs(authorities);
