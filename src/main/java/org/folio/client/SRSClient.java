@@ -16,7 +16,7 @@ import static org.folio.util.Mapper.mapResponseToJson;
 public class SRSClient {
     private static final Logger LOG = LoggerFactory.getLogger(SRSClient.class);
     private static final String GET_RECORDS_PATH = "/source-storage/records?snapshotId=%s&recordType=%s&limit=%s&offset=%s";
-    private static final String LIMIT = "500";
+    private static final String LIMIT = "1000";
     private final HttpWorker httpWorker;
 
     public SRSClient(HttpWorker httpWorker) {
