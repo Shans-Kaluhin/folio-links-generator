@@ -1,21 +1,26 @@
 package org.folio.service;
 
 import lombok.SneakyThrows;
+import me.tongfei.progressbar.ProgressBar;
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
 import org.folio.client.DataImportClient;
-import org.folio.model.integration.JobStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.nio.file.Path;
 import java.util.concurrent.TimeUnit;
 
 import static org.folio.model.integration.JobStatus.CANCELLED;
 import static org.folio.model.integration.JobStatus.COMMITTED;
+import static org.folio.model.integration.JobStatus.DISCARDED;
 import static org.folio.model.integration.JobStatus.ERROR;
 
 public class DataImportService {
     private static final Logger LOG = LoggerFactory.getLogger(DataImportService.class);
+    private static final String STATUS_BAR_TITLE = "IMPORT-PROGRESS-BAR  INFO --- [main] org.folio.service.DataImportService      : ";
+    private static final String AUTHORITY_TITLE = "Import Authorities";
+    private static final String BIB_TITLE = "Generating Bibs";
     private final DataImportClient dataImportClient;
 
     public DataImportService(DataImportClient dataImportClient) {
@@ -29,34 +34,53 @@ public class DataImportService {
 
         dataImportClient.uploadFile(uploadDefinition);
         dataImportClient.uploadJobProfile(uploadDefinition, "createAuthority.json");
-        waitStatus(uploadDefinition.getJobExecutionId(), COMMITTED);
+        var jobId = uploadDefinition.getJobExecutionId();
+
+        waitForJobFinishing(buildProgressBar(AUTHORITY_TITLE), jobId);
 
         return uploadDefinition.getJobExecutionId();
     }
 
-    @SneakyThrows
-    public String importBibs(Path bibMrcFile) {
-        var uploadDefinition = dataImportClient.uploadDefinition(bibMrcFile);
+    public String importBibs(File bibMrcFile) {
+        var uploadDefinition = dataImportClient.uploadDefinition(bibMrcFile.toPath());
         LOG.info("Import bibs job id: " + uploadDefinition.getJobExecutionId());
 
         dataImportClient.uploadFile(uploadDefinition);
         dataImportClient.uploadJobProfile(uploadDefinition, "createInstance.json");
-        waitStatus(uploadDefinition.getJobExecutionId(), COMMITTED);
+        var jobId = uploadDefinition.getJobExecutionId();
 
-        return uploadDefinition.getJobExecutionId();
+        waitForJobFinishing(buildProgressBar(BIB_TITLE), jobId);
+
+        return jobId;
     }
 
     @SneakyThrows
-    private String waitStatus(String jobId, JobStatus expectedStatus) {
-        var status = dataImportClient.getJobStatus(jobId);
-        LOG.info("Import job status: " + status);
-        if (status.equals(expectedStatus.name())
-                || status.equals(ERROR.name())
-                || status.equals(CANCELLED.name())) {
-            return status;
+    private void waitForJobFinishing(ProgressBar progressBar, String jobId) {
+        var job = dataImportClient.retrieveJobExecution(jobId);
+        progressBar.maxHint(job.getTotal());
+        progressBar.stepTo(job.getCurrent());
+        progressBar.setExtraMessage(job.getUiStatus());
+
+        if (isJobFinished(job.getStatus())) {
+            progressBar.close();
         } else {
             TimeUnit.SECONDS.sleep(20);
-            return waitStatus(jobId, expectedStatus);
+            waitForJobFinishing(progressBar, jobId);
         }
+    }
+
+    private boolean isJobFinished(String status) {
+        return COMMITTED.name().equals(status)
+                || ERROR.name().equals(status)
+                || CANCELLED.name().equals(status)
+                || DISCARDED.name().equals(status);
+    }
+
+    private ProgressBar buildProgressBar(String title) {
+        return new ProgressBarBuilder()
+                .setTaskName(STATUS_BAR_TITLE + title)
+                .setStyle(ProgressBarStyle.ASCII)
+                .setMaxRenderedLength(STATUS_BAR_TITLE.length() + 70)
+                .build();
     }
 }

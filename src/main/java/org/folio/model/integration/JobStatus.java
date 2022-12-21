@@ -1,5 +1,5 @@
 package org.folio.model.integration;
 
 public enum JobStatus {
-    ERROR, COMMITTED, CANCELLED
+    ERROR, COMMITTED, CANCELLED, DISCARDED
 }

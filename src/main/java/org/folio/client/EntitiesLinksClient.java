@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import java.util.HashMap;
 import java.util.List;
 
-import static org.folio.util.Mapper.mapRules;
+import static org.folio.mapper.ResponseMapper.mapRules;
 
 public class EntitiesLinksClient {
     private static final Logger LOG = LoggerFactory.getLogger(EntitiesLinksClient.class);

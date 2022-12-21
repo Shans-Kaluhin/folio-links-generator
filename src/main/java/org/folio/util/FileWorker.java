@@ -7,10 +7,9 @@ import org.springframework.util.ResourceUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 
 import static org.folio.FolioLinksGeneratorApp.exitWithError;
@@ -19,9 +18,13 @@ public class FileWorker {
 
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
-    public static Path writeFile(String name, List<String> strings) {
-        try {
-            return Files.write(Paths.get(name), strings, StandardCharsets.UTF_8);
+    public static File writeFile(String name, List<String> strings) {
+        try (PrintWriter writer = new PrintWriter(name, StandardCharsets.UTF_8)) {
+            File file = new File(name);
+            for (var str : strings) {
+                writer.println(str);
+            }
+            return file;
         } catch (IOException e) {
             exitWithError("Failed to write file: " + name);
             return null;

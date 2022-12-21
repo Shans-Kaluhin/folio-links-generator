@@ -3,7 +3,7 @@ package org.folio.client;
 import org.folio.model.Configuration;
 import org.folio.util.HttpWorker;
 
-import static org.folio.util.Mapper.mapResponseToJson;
+import static org.folio.mapper.ResponseMapper.mapResponseToJson;
 
 public class AuthClient {
     private static final String BODY_FORMAT = "{\"username\": \"%s\",\"password\": \"%s\"}";

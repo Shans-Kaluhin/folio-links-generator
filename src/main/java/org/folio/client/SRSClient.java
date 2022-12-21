@@ -10,8 +10,8 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.folio.util.Mapper.mapRecordsToExternalIds;
-import static org.folio.util.Mapper.mapResponseToJson;
+import static org.folio.mapper.ResponseMapper.mapRecordsToExternalIds;
+import static org.folio.mapper.ResponseMapper.mapResponseToJson;
 
 public class SRSClient {
     private static final Logger LOG = LoggerFactory.getLogger(SRSClient.class);

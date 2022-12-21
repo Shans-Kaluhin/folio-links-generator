@@ -7,14 +7,14 @@ import org.folio.processor.translations.Translation;
 import org.folio.writer.RecordWriter;
 import org.folio.writer.impl.MarcRecordWriter;
 
-import java.nio.file.Path;
+import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.folio.mapper.MarcMapper.mapToCompositeValue;
 import static org.folio.util.FileWorker.writeFile;
-import static org.folio.util.Mapper.mapToCompositeValue;
 
 public class MarcConverterService {
     private static final String GENERATED_BIBS_FILE = "SCRIPT_auto_generated_bibs_for_linking_tests.mrc";
@@ -26,7 +26,7 @@ public class MarcConverterService {
         this.linkingRuleService = linkingRuleService;
     }
 
-    public Path generateBibs(List<ExternalIdsHolder> authorities) {
+    public File generateBibs(List<ExternalIdsHolder> authorities) {
         var mrcFile = new ArrayList<String>();
         var authoritiesFields = mergeAuthoritiesFields(authorities);
 

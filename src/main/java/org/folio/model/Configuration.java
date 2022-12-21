@@ -14,8 +14,7 @@ public class Configuration {
     private String tenant;
     private String username;
     private String password;
-    private String token;
     private List<BibsConfig> marcBibs;
 
-    public record BibsConfig (int totalBibs, List<String> linkingFields) {}
+    public record BibsConfig(int totalBibs, List<String> linkingFields) {}
 }
