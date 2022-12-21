@@ -13,21 +13,6 @@ public class ExternalIdsHolder {
     private String hrid;
     private List<MarcField> fields;
 
-    public MarcField getField(String tag) {
-        return fields.stream()
-                .filter(b -> b.getTag().equals(tag))
-                .findFirst()
-                .orElse(null);
-    }
-
-    public String getTitle() {
-        return fields.stream()
-                .filter(b -> b.getTag().equals("245"))
-                .map(b -> b.getSubfields().get('a'))
-                .findFirst()
-                .orElse(null);
-    }
-
     public String getNaturalId() {
         return fields.stream()
                 .filter(b -> b.getTag().equals("010"))

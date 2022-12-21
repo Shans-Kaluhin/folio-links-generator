@@ -1,66 +1,54 @@
 package org.folio.service;
 
 import lombok.extern.slf4j.Slf4j;
+import me.tongfei.progressbar.ProgressBar;
 import org.folio.client.EntitiesLinksClient;
-import org.folio.model.Configuration;
+import org.folio.model.MarcField;
 import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.model.integration.InstanceLinks;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static org.folio.service.LinkingRuleService.ID_LOC_GOV;
+import static org.folio.service.LinksGenerationService.progressBarBuilder;
+
 @Slf4j
 public class EntitiesLinksService {
+    private static final String LINKING_TITLE = "Linking Instances";
     private final EntitiesLinksClient linksClient;
-    private final Configuration configuration;
 
-    public EntitiesLinksService(Configuration configuration, EntitiesLinksClient linksClient) {
-        this.configuration = configuration;
+    public EntitiesLinksService(EntitiesLinksClient linksClient) {
         this.linksClient = linksClient;
     }
 
-    public void linkRecords(List<ExternalIdsHolder> instances, List<ExternalIdsHolder> authorities) {
-        for (Configuration.BibsConfig bibConfig : configuration.getMarcBibs()) {
-            var instancesByTitle = retrieveInstancesBySubfields(instances, bibConfig.linkingFields());
+    public void linkRecords(List<ExternalIdsHolder> instances) {
+        for (var instance : ProgressBar.wrap(instances, progressBarBuilder(LINKING_TITLE))) {
+            var instanceId = instance.getId();
+            var instanceLinks = constructLinksByMarcFields(instance);
 
-            for (var instanceHolder : instancesByTitle) {
-                var instanceId = instanceHolder.getId();
-                var instanceLinks = constructLinks(bibConfig, authorities, instanceHolder);
-
-                log.info("Linking all authorities for instance: {}", instanceId);
-                linksClient.link(instanceId, instanceLinks);
-            }
+            linksClient.link(instanceId, instanceLinks);
         }
     }
 
-    private InstanceLinks constructLinks(Configuration.BibsConfig config, List<ExternalIdsHolder> authorities, ExternalIdsHolder instanceHolder) {
-        var links = new ArrayList<InstanceLinks.Link>();
-
-        for (var authorityHolder : authorities) {
-            config.linkingFields().stream()
-                    .map(field -> constructLink(field, authorityHolder, instanceHolder))
-                    .filter(Objects::nonNull)
-                    .forEach(links::add);
-        }
-        return new InstanceLinks(links);
+    private InstanceLinks constructLinksByMarcFields(ExternalIdsHolder instance) {
+        return new InstanceLinks(instance.getFields()
+                .stream()
+                .map(marc -> constructLink(instance.getId(), marc))
+                .filter(Objects::nonNull)
+                .toList());
     }
 
-    private InstanceLinks.Link constructLink(String field, ExternalIdsHolder authorityHolder, ExternalIdsHolder instanceHolder) {
-        var instanceId = instanceHolder.getId();
-        var authorityId = authorityHolder.getId();
-        var authorityNaturalId = authorityHolder.getNaturalId();
-        var marcField = instanceHolder.getField(field);
-
-        if (marcField == null) {
+    private InstanceLinks.Link constructLink(String instanceId, MarcField marcField) {
+        if (marcField == null || !marcField.getSubfields().containsKey('9')) {
             return null;
         }
-        return new InstanceLinks.Link(instanceId, authorityId, field, authorityNaturalId, marcField.getSubfields().keySet());
-    }
+        var subfields = marcField.getSubfields();
+        var authorityId = subfields.get('9');
+        var authorityNaturalId = subfields.get('0').substring(ID_LOC_GOV.length());
+        subfields.remove('9');
+        subfields.remove('0');
 
-    private List<ExternalIdsHolder> retrieveInstancesBySubfields(List<ExternalIdsHolder> instances, List<String> subfields) {
-        return instances.stream()
-                .filter(i -> i.getTitle().contains(subfields.toString()))
-                .toList();
+        return new InstanceLinks.Link(instanceId, authorityId, marcField.getTag(), authorityNaturalId, subfields.keySet());
     }
 }

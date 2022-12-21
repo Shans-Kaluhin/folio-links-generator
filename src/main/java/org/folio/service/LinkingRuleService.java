@@ -12,7 +12,7 @@ import java.util.Map;
 
 @Slf4j
 public class LinkingRuleService {
-    private static final String ID_LOC_GOV = "https://id.loc.gov/authorities/names/";
+    protected static final String ID_LOC_GOV = "https://id.loc.gov/authorities/names/";
     private final EntitiesLinksClient linksClient;
 
     public LinkingRuleService(EntitiesLinksClient linksClient) {

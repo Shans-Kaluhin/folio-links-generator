@@ -1,5 +1,7 @@
 package org.folio.service;
 
+import me.tongfei.progressbar.ProgressBarBuilder;
+import me.tongfei.progressbar.ProgressBarStyle;
 import org.folio.client.AuthClient;
 import org.folio.client.DataImportClient;
 import org.folio.client.EntitiesLinksClient;
@@ -18,10 +20,11 @@ import static org.folio.util.FileWorker.getMappedResourceFile;
 
 @Service
 public class LinksGenerationService {
-    private SRSClient srsClient;
-    private DataImportService importService;
-    private EntitiesLinksService linksService;
+    private static final String STATUS_BAR_PREFIX = "IMPORT-PROGRESS-BAR  INFO --- [main] org.folio.service.DataImportService      : ";
     private MarcConverterService marcConverterService;
+    private EntitiesLinksService linksService;
+    private DataImportService importService;
+    private SRSClient srsClient;
 
     public void start(File configurationFile, File authorityMrcFile) {
         var configuration = getMappedResourceFile(configurationFile, Configuration.class);
@@ -34,7 +37,7 @@ public class LinksGenerationService {
 
         srsClient = new SRSClient(httpWorker);
         importService = new DataImportService(importClient);
-        linksService = new EntitiesLinksService(configuration, linksClient);
+        linksService = new EntitiesLinksService(linksClient);
         marcConverterService = new MarcConverterService(configuration, linkingRuleService);
 
         httpWorker.setOkapiToken(authClient.authorize());
@@ -52,9 +55,16 @@ public class LinksGenerationService {
         var bibJobId = importService.importBibs(generatedBibs);
         var instances = srsClient.retrieveExternalIdsHolders(bibJobId, MARC_BIB);
 
-        linksService.linkRecords(instances, authorities);
+        linksService.linkRecords(instances);
         deleteFile(generatedBibs);
 
         return "Records was successfully linked";
+    }
+
+    public static ProgressBarBuilder progressBarBuilder(String title) {
+        return new ProgressBarBuilder()
+                .setTaskName(STATUS_BAR_PREFIX + title)
+                .setStyle(ProgressBarStyle.ASCII)
+                .setMaxRenderedLength(STATUS_BAR_PREFIX.length() + 70);
     }
 }

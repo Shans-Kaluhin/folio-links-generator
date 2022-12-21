@@ -14,7 +14,7 @@ public class MarcField {
     private String ind2;
     private Map<Character, String> subfields;
 
-    public MarcField copyWithTag(String newTag){
+    public MarcField copyWithTag(String newTag) {
         return new MarcField(newTag, ind1, ind2, new HashMap<>(subfields));
     }
 }

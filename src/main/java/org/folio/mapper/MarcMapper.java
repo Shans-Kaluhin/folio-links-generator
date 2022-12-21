@@ -62,9 +62,7 @@ public class MarcMapper {
         for (var authoritySubfield : authoritySubfields) {
             authoritySubfield.fields().forEachRemaining(e -> {
                 Character subfield = e.getKey().charAt(0);
-                if (!(subfield.equals('0') || subfield.equals('9'))) {
-                    bibSubfields.put(subfield, e.getValue().asText());
-                }
+                bibSubfields.put(subfield, e.getValue().asText());
             });
         }
 
