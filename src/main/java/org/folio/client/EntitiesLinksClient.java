@@ -2,19 +2,18 @@ package org.folio.client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
-import org.folio.model.integration.LinkingRule;
+import lombok.extern.slf4j.Slf4j;
 import org.folio.model.integration.InstanceLinks;
+import org.folio.model.integration.LinkingRule;
 import org.folio.util.HttpWorker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
 
 import static org.folio.mapper.ResponseMapper.mapRules;
 
+@Slf4j
 public class EntitiesLinksClient {
-    private static final Logger LOG = LoggerFactory.getLogger(EntitiesLinksClient.class);
     private static final String GET_LINKING_RULES_PATH = "/linking-rules/instance-authority";
     private static final String INSTANCE_LINKS_PATH = "/links/instances/%s";
     private final HttpWorker httpWorker;
@@ -38,7 +37,7 @@ public class EntitiesLinksClient {
     @SneakyThrows
     public HashMap<String, List<LinkingRule>> getLinkedRules() {
         if (rules == null) {
-            LOG.info("Retrieving linking rules...");
+            log.info("Retrieving linking rules...");
             var request = httpWorker.constructGETRequest(GET_LINKING_RULES_PATH);
             var response = httpWorker.sendRequest(request);
 

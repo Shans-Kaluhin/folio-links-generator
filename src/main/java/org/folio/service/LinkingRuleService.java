@@ -1,18 +1,17 @@
 package org.folio.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.folio.client.EntitiesLinksClient;
 import org.folio.model.MarcField;
 import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.model.integration.LinkingRule;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 public class LinkingRuleService {
-    private static final Logger LOG = LoggerFactory.getLogger(LinkingRuleService.class);
     private static final String ID_LOC_GOV = "https://id.loc.gov/authorities/names/";
     private final EntitiesLinksClient linksClient;
 
@@ -33,7 +32,7 @@ public class LinkingRuleService {
 
         var linkingRules = linksClient.getLinkedRules().get(requiredField);
         if (linkingRules == null) {
-            LOG.info("Field {} was skipped as it does not comply with linked rules", requiredField);
+            log.info("Field {} was skipped as it does not comply with linked rules", requiredField);
             return null;
         }
 
@@ -80,7 +79,7 @@ public class LinkingRuleService {
                 var isExist = subfields.get(validation.subfield()) != null;
 
                 if (isExist != validation.existence()) {
-                    LOG.info("Authority {}. Fields {} -> {} was not linked. Subfield '{}' is {}",
+                    log.info("Authority {}. Fields {} -> {} was not linked. Subfield '{}' is {}",
                             authorityField.getSubfields().get('9'),
                             requiredField,
                             authorityField.getTag(),

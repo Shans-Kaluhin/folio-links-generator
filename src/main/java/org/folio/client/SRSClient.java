@@ -1,11 +1,10 @@
 package org.folio.client;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.folio.model.RecordType;
 import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.util.HttpWorker;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,8 +12,8 @@ import java.util.List;
 import static org.folio.mapper.ResponseMapper.mapRecordsToExternalIds;
 import static org.folio.mapper.ResponseMapper.mapResponseToJson;
 
+@Slf4j
 public class SRSClient {
-    private static final Logger LOG = LoggerFactory.getLogger(SRSClient.class);
     private static final String GET_RECORDS_PATH = "/source-storage/records?snapshotId=%s&recordType=%s&limit=%s&offset=%s";
     private static final String LIMIT = "1000";
     private final HttpWorker httpWorker;
@@ -30,7 +29,7 @@ public class SRSClient {
 
         while (totalRecords > totalHolders.size()) {
             totalHolders.addAll(retrieveExternalIdsHolders(jobId, recordType, totalHolders.size()));
-            LOG.info("Retrieving {} records: {} of {}", recordType, totalHolders.size(), totalRecords);
+            log.info("Retrieving {} records: {} of {}", recordType, totalHolders.size(), totalRecords);
         }
 
         return totalHolders;

@@ -1,18 +1,17 @@
 package org.folio.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.folio.client.EntitiesLinksClient;
 import org.folio.model.Configuration;
 import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.model.integration.InstanceLinks;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+@Slf4j
 public class EntitiesLinksService {
-    private static final Logger LOG = LoggerFactory.getLogger(EntitiesLinksService.class);
     private final EntitiesLinksClient linksClient;
     private final Configuration configuration;
 
@@ -29,7 +28,7 @@ public class EntitiesLinksService {
                 var instanceId = instanceHolder.getId();
                 var instanceLinks = constructLinks(bibConfig, authorities, instanceHolder);
 
-                LOG.info("Linking all authorities for instance: {}", instanceId);
+                log.info("Linking all authorities for instance: {}", instanceId);
                 linksClient.link(instanceId, instanceLinks);
             }
         }

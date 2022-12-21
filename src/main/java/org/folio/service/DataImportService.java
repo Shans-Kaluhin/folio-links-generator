@@ -1,12 +1,11 @@
 package org.folio.service;
 
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import me.tongfei.progressbar.ProgressBar;
 import me.tongfei.progressbar.ProgressBarBuilder;
 import me.tongfei.progressbar.ProgressBarStyle;
 import org.folio.client.DataImportClient;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.util.concurrent.TimeUnit;
@@ -16,8 +15,8 @@ import static org.folio.model.integration.JobStatus.COMMITTED;
 import static org.folio.model.integration.JobStatus.DISCARDED;
 import static org.folio.model.integration.JobStatus.ERROR;
 
+@Slf4j
 public class DataImportService {
-    private static final Logger LOG = LoggerFactory.getLogger(DataImportService.class);
     private static final String STATUS_BAR_TITLE = "IMPORT-PROGRESS-BAR  INFO --- [main] org.folio.service.DataImportService      : ";
     private static final String AUTHORITY_TITLE = "Import Authorities";
     private static final String BIB_TITLE = "Generating Bibs";
@@ -30,7 +29,7 @@ public class DataImportService {
     @SneakyThrows
     public String importAuthority(File authorityMrcFile) {
         var uploadDefinition = dataImportClient.uploadDefinition(authorityMrcFile.toPath());
-        LOG.info("Import authority job id: " + uploadDefinition.getJobExecutionId());
+        log.info("Import authority job id: " + uploadDefinition.getJobExecutionId());
 
         dataImportClient.uploadFile(uploadDefinition);
         dataImportClient.uploadJobProfile(uploadDefinition, "createAuthority.json");
@@ -43,7 +42,7 @@ public class DataImportService {
 
     public String importBibs(File bibMrcFile) {
         var uploadDefinition = dataImportClient.uploadDefinition(bibMrcFile.toPath());
-        LOG.info("Import bibs job id: " + uploadDefinition.getJobExecutionId());
+        log.info("Import bibs job id: " + uploadDefinition.getJobExecutionId());
 
         dataImportClient.uploadFile(uploadDefinition);
         dataImportClient.uploadJobProfile(uploadDefinition, "createInstance.json");

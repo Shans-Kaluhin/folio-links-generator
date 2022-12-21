@@ -1,8 +1,7 @@
 package org.folio;
 
+import lombok.extern.slf4j.Slf4j;
 import org.folio.service.LinksGenerationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -10,9 +9,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 import java.io.File;
 
+@Slf4j
 @SpringBootApplication
 public class FolioLinksGeneratorApp implements CommandLineRunner {
-    private static final Logger LOG = LoggerFactory.getLogger(FolioLinksGeneratorApp.class);
     @Autowired
     private LinksGenerationService service;
 
@@ -21,12 +20,12 @@ public class FolioLinksGeneratorApp implements CommandLineRunner {
     }
 
     public static void exitWithError(String errorMessage) {
-        LOG.error(errorMessage);
+        log.error(errorMessage);
         System.exit(0);
     }
 
     public static void exitWithMessage(String message) {
-        LOG.info(message);
+        log.info(message);
         System.exit(0);
     }
 

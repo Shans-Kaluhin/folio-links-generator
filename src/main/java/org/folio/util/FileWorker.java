@@ -9,7 +9,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Path;
 import java.util.List;
 
 import static org.folio.FolioLinksGeneratorApp.exitWithError;
@@ -31,8 +30,8 @@ public class FileWorker {
         }
     }
 
-    public static boolean deleteFile(Path path) {
-        return path.toFile().delete();
+    public static boolean deleteFile(File file) {
+        return file.delete();
     }
 
     public static InputStream getResourceFile(String name) {
