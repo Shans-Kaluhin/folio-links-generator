@@ -4,6 +4,7 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.folio.client.EntitiesLinksClient;
 import org.folio.model.MarcField;
+import org.folio.model.RecordType;
 import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.model.integration.LinkingRule;
 
@@ -30,10 +31,10 @@ public class LinkingRuleService {
                 .putAll(Map.of('0', naturalId, '9', authorityId)));
     }
 
-    public List<MarcField> constructBibFields(String requiredField) {
+    public List<MarcField> constructBibFieldsByBibTag(String requiredField) {
         var bibMarcFields = new ArrayList<MarcField>();
 
-        var linkingRules = linksClient.getLinkedRules().get(requiredField);
+        var linkingRules = linksClient.getLinkedRules(RecordType.MARC_BIB).get(requiredField);
         if (linkingRules == null) {
             log.info("Field {} was skipped as it does not comply with linked rules", requiredField);
             return null;
@@ -54,12 +55,25 @@ public class LinkingRuleService {
                 }
             }
         }
-
         return bibMarcFields;
     }
 
+    public MarcField constructBibFieldByAuthorityTag(MarcField authorityField) {
+        var linkingRules = linksClient.getLinkedRules(RecordType.MARC_AUTHORITY).get(authorityField.getTag());
+        if (linkingRules != null) {
+            for (var linkingRule : linkingRules) {
+                if (!isViolateExistence(linkingRule, authorityField, authorityField.getTag())) {
+                    var bibMarcField = authorityField.copyWithTag(linkingRule.getBibField());
+                    modifySubfields(linkingRule, bibMarcField);
+                    return bibMarcField;
+                }
+            }
+        }
+        return null;
+    }
+
     public int getRuleId(String requiredField) {
-        var linkingRules = linksClient.getLinkedRules().get(requiredField);
+        var linkingRules = linksClient.getLinkedRules(RecordType.MARC_BIB).get(requiredField);
 
         if (linkingRules != null) {
             for (var linkingRule : linkingRules) {

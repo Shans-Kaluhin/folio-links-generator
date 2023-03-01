@@ -96,7 +96,7 @@ public class ResponseMapper {
     }
 
     @SneakyThrows
-    public static HashMap<String, List<LinkingRule>> mapRules(String json) {
+    public static HashMap<String, List<LinkingRule>> mapRules(String json, RecordType keyType) {
         var rules = new HashMap<String, List<LinkingRule>>();
         var jsonNode = OBJECT_MAPPER.readTree(json);
 
@@ -104,18 +104,20 @@ public class ResponseMapper {
             var id = rule.get("id").asInt();
             var bibField = rule.get("bibField").asText();
             var authorityField = rule.get("authorityField").asText();
+            var keyTag = keyType.equals(RecordType.MARC_BIB) ? bibField : authorityField;
+
             var subfields = mapSubfields(rule);
             var validation = mapValidation(rule);
             var modifications = mapModifications(rule);
             var linkingRule = new LinkingRule(id, bibField, authorityField, subfields, validation, modifications);
 
-            var existRules = rules.get(bibField);
+            var existRules = rules.get(keyTag);
             if (existRules != null) {
                 existRules.add(linkingRule);
             } else {
                 var list = new ArrayList<LinkingRule>();
                 list.add(linkingRule);
-                rules.put(bibField, list);
+                rules.put(keyTag, list);
             }
         }
 

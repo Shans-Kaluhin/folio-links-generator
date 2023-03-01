@@ -1,5 +1,6 @@
 package org.folio.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.folio.model.Configuration;
 import org.folio.model.MarcField;
 import org.folio.model.integration.ExternalIdsHolder;
@@ -16,6 +17,7 @@ import java.util.Map;
 import static org.folio.mapper.MarcMapper.mapToCompositeValue;
 import static org.folio.util.FileWorker.writeFile;
 
+@Slf4j
 public class MarcConverterService {
     private static final String GENERATED_BIBS_FILE = "SCRIPT_auto_generated_bibs_for_linking_tests.mrc";
     private final LinkingRuleService linkingRuleService;
@@ -27,18 +29,37 @@ public class MarcConverterService {
     }
 
     public File generateBibs(List<ExternalIdsHolder> authorities) {
-        var mrcFile = new ArrayList<String>();
         var authoritiesFields = mergeAuthoritiesFields(authorities);
         linkingRuleService.setAuthorityMergedFields(authoritiesFields);
 
-        for (var config : configuration.getMarcBibs()) {
-            var marcBibFields = mapFieldsAndFilterByRules(config.linkingFields());
-            marcBibFields.add(getNameMarcField(config.linkingFields()));
-            marcBibFields.add(getInstanceTypeField());
+        var mrcFile = new ArrayList<String>();
+        if (configuration.isUniqueMarcBibs() || configuration.getMarcBibs() == null) {
+            for (var authority : authorities) {
+                var marcBibFields = new ArrayList<MarcField>();
+                for (var field : authority.getFields()) {
+                    var marcBibField = linkingRuleService.constructBibFieldByAuthorityTag(field);
+                    if (marcBibField != null) {
+                        marcBibFields.add(marcBibField);
+                    }
+                }
+                if (marcBibFields.isEmpty()) {
+                    log.info("Authority {} have no fields to link", authority.getId());
+                    continue;
+                }
+                marcBibFields.add(getNameMarcField(List.of(authority.getId())));
+                marcBibFields.add(getInstanceTypeField());
+                mrcFile.add(createInstance(marcBibFields));
+            }
+        } else {
+            for (var config : configuration.getMarcBibs()) {
+                var marcBibFields = mapFieldsAndFilterByRules(config.linkingFields());
+                marcBibFields.add(getNameMarcField(config.linkingFields()));
+                marcBibFields.add(getInstanceTypeField());
 
-            for (int i = 0; i < config.totalBibs(); i++) {
-                var instance = createInstance(marcBibFields);
-                mrcFile.add(instance);
+                for (int i = 0; i < config.totalBibs(); i++) {
+                    var instance = createInstance(marcBibFields);
+                    mrcFile.add(instance);
+                }
             }
         }
 
@@ -59,7 +80,7 @@ public class MarcConverterService {
         var fieldsToRemove = new ArrayList<String>();
 
         for (var requiredField : linkingFields) {
-            var bibFields = linkingRuleService.constructBibFields(requiredField);
+            var bibFields = linkingRuleService.constructBibFieldsByBibTag(requiredField);
             if (bibFields == null) {
                 fieldsToRemove.add(requiredField);
             } else {

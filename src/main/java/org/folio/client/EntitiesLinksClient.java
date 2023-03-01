@@ -3,6 +3,7 @@ package org.folio.client;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
+import org.folio.model.RecordType;
 import org.folio.model.integration.InstanceLinks;
 import org.folio.model.integration.LinkingRule;
 import org.folio.util.HttpWorker;
@@ -16,8 +17,8 @@ import static org.folio.mapper.ResponseMapper.mapRules;
 public class EntitiesLinksClient {
     private static final String GET_LINKING_RULES_PATH = "/linking-rules/instance-authority";
     private static final String INSTANCE_LINKS_PATH = "/links/instances/%s";
+    private final HashMap<RecordType, HashMap<String, List<LinkingRule>>> rules = new HashMap<>();
     private final HttpWorker httpWorker;
-    private HashMap<String, List<LinkingRule>> rules;
 
     public EntitiesLinksClient(HttpWorker httpWorker) {
         this.httpWorker = httpWorker;
@@ -35,16 +36,18 @@ public class EntitiesLinksClient {
     }
 
     @SneakyThrows
-    public HashMap<String, List<LinkingRule>> getLinkedRules() {
-        if (rules == null) {
+    public HashMap<String, List<LinkingRule>> getLinkedRules(RecordType recordType) {
+        if (rules.isEmpty()) {
             log.info("Retrieving linking rules...");
             var request = httpWorker.constructGETRequest(GET_LINKING_RULES_PATH);
             var response = httpWorker.sendRequest(request);
 
             httpWorker.verifyStatus(response, 200, "Failed to get linking rules");
 
-            rules = mapRules(response.body());
+            var json = response.body();
+            rules.put(RecordType.MARC_BIB, mapRules(json, RecordType.MARC_BIB));
+            rules.put(RecordType.MARC_AUTHORITY, mapRules(json, RecordType.MARC_AUTHORITY));
         }
-        return rules;
+        return rules.get(recordType);
     }
 }
