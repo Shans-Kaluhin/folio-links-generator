@@ -7,10 +7,10 @@ import org.folio.util.HttpWorker;
 
 import java.nio.file.Path;
 
-import static org.folio.mapper.ResponseMapper.mapToJobExecution;
-import static org.folio.util.FileWorker.getJsonObject;
 import static org.folio.mapper.ResponseMapper.mapResponseToJson;
+import static org.folio.mapper.ResponseMapper.mapToJobExecution;
 import static org.folio.mapper.ResponseMapper.mapUploadDefinition;
+import static org.folio.util.FileWorker.getJsonObject;
 
 public class DataImportClient {
     private static final String UPLOAD_DEFINITION_BODY = "{\"fileDefinitions\":[{\"size\": 1,\"name\": \"%s\"}]}";

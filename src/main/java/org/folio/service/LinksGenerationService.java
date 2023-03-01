@@ -26,6 +26,13 @@ public class LinksGenerationService {
     private DataImportService importService;
     private SRSClient srsClient;
 
+    public static ProgressBarBuilder progressBarBuilder(String title) {
+        return new ProgressBarBuilder()
+                .setTaskName(STATUS_BAR_PREFIX + title)
+                .setStyle(ProgressBarStyle.ASCII)
+                .setMaxRenderedLength(STATUS_BAR_PREFIX.length() + 70);
+    }
+
     public void start(File configurationFile, File authorityMrcFile) {
         var configuration = getMappedResourceFile(configurationFile, Configuration.class);
         var httpWorker = new HttpWorker(configuration);
@@ -37,7 +44,7 @@ public class LinksGenerationService {
 
         srsClient = new SRSClient(httpWorker);
         importService = new DataImportService(importClient);
-        linksService = new EntitiesLinksService(linksClient);
+        linksService = new EntitiesLinksService(linksClient, linkingRuleService);
         marcConverterService = new MarcConverterService(configuration, linkingRuleService);
 
         httpWorker.setOkapiToken(authClient.authorize());
@@ -59,12 +66,5 @@ public class LinksGenerationService {
         deleteFile(generatedBibs);
 
         return "Records was successfully linked";
-    }
-
-    public static ProgressBarBuilder progressBarBuilder(String title) {
-        return new ProgressBarBuilder()
-                .setTaskName(STATUS_BAR_PREFIX + title)
-                .setStyle(ProgressBarStyle.ASCII)
-                .setMaxRenderedLength(STATUS_BAR_PREFIX.length() + 70);
     }
 }

@@ -11,7 +11,8 @@ import java.util.Set;
 public class InstanceLinks {
     private List<Link> links;
 
-    public record Link(String instanceId,
+    public record Link(int linkingRuleId,
+                       String instanceId,
                        String authorityId,
                        String bibRecordTag,
                        String authorityNaturalId,

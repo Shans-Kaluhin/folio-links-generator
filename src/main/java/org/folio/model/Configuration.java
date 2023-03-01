@@ -16,5 +16,6 @@ public class Configuration {
     private String password;
     private List<BibsConfig> marcBibs;
 
-    public record BibsConfig(int totalBibs, List<String> linkingFields) {}
+    public record BibsConfig(int totalBibs, List<String> linkingFields) {
+    }
 }

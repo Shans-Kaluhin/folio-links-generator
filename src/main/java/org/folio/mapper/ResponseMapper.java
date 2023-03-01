@@ -101,12 +101,13 @@ public class ResponseMapper {
         var jsonNode = OBJECT_MAPPER.readTree(json);
 
         for (JsonNode rule : jsonNode) {
+            var id = rule.get("id").asInt();
             var bibField = rule.get("bibField").asText();
             var authorityField = rule.get("authorityField").asText();
             var subfields = mapSubfields(rule);
             var validation = mapValidation(rule);
             var modifications = mapModifications(rule);
-            var linkingRule = new LinkingRule(bibField, authorityField, subfields, validation, modifications);
+            var linkingRule = new LinkingRule(id, bibField, authorityField, subfields, validation, modifications);
 
             var existRules = rules.get(bibField);
             if (existRules != null) {

@@ -1,5 +1,6 @@
 package org.folio.service;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.folio.client.EntitiesLinksClient;
 import org.folio.model.MarcField;
@@ -11,15 +12,17 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
+@Setter
 public class LinkingRuleService {
     protected static final String ID_LOC_GOV = "https://id.loc.gov/authorities/names/";
     private final EntitiesLinksClient linksClient;
+    private Map<String, List<MarcField>> authorityMergedFields;
 
     public LinkingRuleService(EntitiesLinksClient linksClient) {
         this.linksClient = linksClient;
     }
 
-    public void setLinkingSubfields(ExternalIdsHolder authority) {
+    public void putLinkingSubfields(ExternalIdsHolder authority) {
         var authorityId = authority.getId();
         var naturalId = ID_LOC_GOV + authority.getNaturalId();
 
@@ -27,7 +30,7 @@ public class LinkingRuleService {
                 .putAll(Map.of('0', naturalId, '9', authorityId)));
     }
 
-    public List<MarcField> constructBibFields(String requiredField, Map<String, List<MarcField>> authorityMergedFields) {
+    public List<MarcField> constructBibFields(String requiredField) {
         var bibMarcFields = new ArrayList<MarcField>();
 
         var linkingRules = linksClient.getLinkedRules().get(requiredField);
@@ -53,6 +56,21 @@ public class LinkingRuleService {
         }
 
         return bibMarcFields;
+    }
+
+    public int getRuleId(String requiredField) {
+        var linkingRules = linksClient.getLinkedRules().get(requiredField);
+
+        if (linkingRules != null) {
+            for (var linkingRule : linkingRules) {
+                var authorityFields = authorityMergedFields.get(linkingRule.getAuthorityField());
+
+                if (authorityFields != null) {
+                    return linkingRule.getId();
+                }
+            }
+        }
+        return 0;
     }
 
     private void modifySubfields(LinkingRule linkingRule, MarcField bibMarcField) {

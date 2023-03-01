@@ -29,9 +29,10 @@ public class MarcConverterService {
     public File generateBibs(List<ExternalIdsHolder> authorities) {
         var mrcFile = new ArrayList<String>();
         var authoritiesFields = mergeAuthoritiesFields(authorities);
+        linkingRuleService.setAuthorityMergedFields(authoritiesFields);
 
         for (var config : configuration.getMarcBibs()) {
-            var marcBibFields = mapFieldsAndFilterByRules(authoritiesFields, config.linkingFields());
+            var marcBibFields = mapFieldsAndFilterByRules(config.linkingFields());
             marcBibFields.add(getNameMarcField(config.linkingFields()));
             marcBibFields.add(getInstanceTypeField());
 
@@ -53,12 +54,12 @@ public class MarcConverterService {
         return recordWriter.getResult();
     }
 
-    private List<MarcField> mapFieldsAndFilterByRules(Map<String, List<MarcField>> authorityFields, List<String> linkingFields) {
+    private List<MarcField> mapFieldsAndFilterByRules(List<String> linkingFields) {
         var marcFields = new ArrayList<MarcField>();
         var fieldsToRemove = new ArrayList<String>();
 
         for (var requiredField : linkingFields) {
-            var bibFields = linkingRuleService.constructBibFields(requiredField, authorityFields);
+            var bibFields = linkingRuleService.constructBibFields(requiredField);
             if (bibFields == null) {
                 fieldsToRemove.add(requiredField);
             } else {
@@ -72,7 +73,7 @@ public class MarcConverterService {
 
     private Map<String, List<MarcField>> mergeAuthoritiesFields(List<ExternalIdsHolder> authorities) {
         var merged = new HashMap<String, List<MarcField>>();
-        authorities.forEach(linkingRuleService::setLinkingSubfields);
+        authorities.forEach(linkingRuleService::putLinkingSubfields);
         authorities.stream()
                 .flatMap(authority -> authority.getFields().stream())
                 .forEach(field -> {

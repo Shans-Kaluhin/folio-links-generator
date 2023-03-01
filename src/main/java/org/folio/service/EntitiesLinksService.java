@@ -1,5 +1,6 @@
 package org.folio.service;
 
+import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import me.tongfei.progressbar.ProgressBar;
 import org.folio.client.EntitiesLinksClient;
@@ -14,12 +15,15 @@ import static org.folio.service.LinkingRuleService.ID_LOC_GOV;
 import static org.folio.service.LinksGenerationService.progressBarBuilder;
 
 @Slf4j
+@Setter
 public class EntitiesLinksService {
     private static final String LINKING_TITLE = "Linking Instances";
     private final EntitiesLinksClient linksClient;
+    private final LinkingRuleService linkingRuleService;
 
-    public EntitiesLinksService(EntitiesLinksClient linksClient) {
+    public EntitiesLinksService(EntitiesLinksClient linksClient, LinkingRuleService linkingRuleService) {
         this.linksClient = linksClient;
+        this.linkingRuleService = linkingRuleService;
     }
 
     public void linkRecords(List<ExternalIdsHolder> instances) {
@@ -43,12 +47,14 @@ public class EntitiesLinksService {
         if (marcField == null || !marcField.getSubfields().containsKey('9')) {
             return null;
         }
+        var bibTag = marcField.getTag();
+        var ruleId = linkingRuleService.getRuleId(bibTag);
         var subfields = marcField.getSubfields();
         var authorityId = subfields.get('9');
         var authorityNaturalId = subfields.get('0').substring(ID_LOC_GOV.length());
         subfields.remove('9');
         subfields.remove('0');
 
-        return new InstanceLinks.Link(instanceId, authorityId, marcField.getTag(), authorityNaturalId, subfields.keySet());
+        return new InstanceLinks.Link(ruleId, instanceId, authorityId, bibTag, authorityNaturalId, subfields.keySet());
     }
 }
