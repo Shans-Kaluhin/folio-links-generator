@@ -18,6 +18,7 @@ import static org.folio.service.LinksGenerationService.progressBarBuilder;
 public class DataImportService {
     private static final String AUTHORITY_TITLE = "Import Authorities";
     private static final String BIB_TITLE = "Generating Bibs";
+    private static final int STATUS_CHECK_INTERVAL = 2;
     private final DataImportClient dataImportClient;
 
     public DataImportService(DataImportClient dataImportClient) {
@@ -53,8 +54,6 @@ public class DataImportService {
 
     @SneakyThrows
     private void waitForJobFinishing(ProgressBar progressBar, String jobId) {
-        TimeUnit.SECONDS.sleep(10);
-
         var job = dataImportClient.retrieveJobExecution(jobId);
         progressBar.maxHint(job.getTotal());
         progressBar.stepTo(job.getCurrent());
@@ -63,6 +62,7 @@ public class DataImportService {
         if (isJobFinished(job.getStatus())) {
             progressBar.close();
         } else {
+            TimeUnit.SECONDS.sleep(STATUS_CHECK_INTERVAL);
             waitForJobFinishing(progressBar, jobId);
         }
     }

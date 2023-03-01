@@ -20,7 +20,7 @@ import static org.folio.util.FileWorker.getMappedResourceFile;
 
 @Service
 public class LinksGenerationService {
-    private static final String STATUS_BAR_PREFIX = "IMPORT-PROGRESS-BAR  INFO --- [main] org.folio.service.DataImportService      : ";
+    private static final String STATUS_BAR_PREFIX = "IMPORT-PROGRESS-BAR  INFO --- [main] : ";
     private MarcConverterService marcConverterService;
     private EntitiesLinksService linksService;
     private DataImportService importService;
