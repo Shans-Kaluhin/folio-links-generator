@@ -4,10 +4,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.util.ResourceUtils;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
@@ -18,16 +19,16 @@ public class FileWorker {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
     public static File writeFile(String name, List<String> strings) {
-        try (PrintWriter writer = new PrintWriter(name, StandardCharsets.UTF_8)) {
-            File file = new File(name);
+        File file = new File(name);
+        try (FileWriter fw = new FileWriter(file, StandardCharsets.UTF_8);
+             BufferedWriter writer = new BufferedWriter(fw)) {
             for (var str : strings) {
-                writer.println(str);
+                writer.append(str);
             }
-            return file;
         } catch (IOException e) {
             exitWithError("Failed to write file: " + name);
-            return null;
         }
+        return file;
     }
 
     public static boolean deleteFile(File file) {
