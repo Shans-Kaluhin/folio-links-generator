@@ -1,16 +1,16 @@
 package org.folio.model;
 
 public enum RecordType {
-    MARC_BIB("instance"),
-    MARC_AUTHORITY("authority");
+  MARC_BIB("instance"),
+  MARC_AUTHORITY("authority");
 
-    private final String externalIdName;
+  private final String externalIdName;
 
-    RecordType(String externalIdName) {
-        this.externalIdName = externalIdName;
-    }
+  RecordType(String externalIdName) {
+    this.externalIdName = externalIdName;
+  }
 
-    public String getExternalIdName() {
-        return externalIdName;
-    }
+  public String getExternalIdName() {
+    return externalIdName;
+  }
 }

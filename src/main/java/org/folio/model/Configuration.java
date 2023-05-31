@@ -1,22 +1,21 @@
 package org.folio.model;
 
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-
-import java.util.List;
 
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class Configuration {
-    private String okapiUrl;
-    private String tenant;
-    private String username;
-    private String password;
-    boolean uniqueMarcBibs;
-    private List<BibsConfig> marcBibs;
+  boolean uniqueMarcBibs;
+  private String okapiUrl;
+  private String tenant;
+  private String username;
+  private String password;
+  private List<BibsConfig> marcBibs;
 
-    public record BibsConfig(int totalBibs, List<String> linkingFields) {
-    }
+  public record BibsConfig(int totalBibs, List<String> linkingFields) {
+  }
 }

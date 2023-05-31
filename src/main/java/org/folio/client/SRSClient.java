@@ -1,61 +1,61 @@
 package org.folio.client;
 
+import static org.folio.mapper.ResponseMapper.mapRecordsToExternalIds;
+import static org.folio.mapper.ResponseMapper.mapResponseToJson;
+
+import java.util.ArrayList;
+import java.util.List;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.folio.model.RecordType;
 import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.util.HttpWorker;
 
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.folio.mapper.ResponseMapper.mapRecordsToExternalIds;
-import static org.folio.mapper.ResponseMapper.mapResponseToJson;
-
 @Slf4j
 public class SRSClient {
-    private static final String GET_RECORDS_PATH = "/source-storage/records?snapshotId=%s&recordType=%s&limit=%s&offset=%s";
-    private static final String LIMIT = "1000";
-    private final HttpWorker httpWorker;
+  private static final String GET_RECORDS_PATH =
+    "/source-storage/records?snapshotId=%s&recordType=%s&limit=%s&offset=%s";
+  private static final String LIMIT = "1000";
+  private final HttpWorker httpWorker;
 
-    public SRSClient(HttpWorker httpWorker) {
-        this.httpWorker = httpWorker;
+  public SRSClient(HttpWorker httpWorker) {
+    this.httpWorker = httpWorker;
+  }
+
+  @SneakyThrows
+  public List<ExternalIdsHolder> retrieveExternalIdsHolders(String jobId, RecordType recordType) {
+    var totalHolders = new ArrayList<ExternalIdsHolder>();
+    int totalRecords = retrieveTotalRecords(jobId, recordType);
+
+    while (totalRecords > totalHolders.size()) {
+      totalHolders.addAll(retrieveExternalIdsHolders(jobId, recordType, totalHolders.size()));
+      log.info("Retrieving {} records: {} of {}", recordType, totalHolders.size(), totalRecords);
     }
 
-    @SneakyThrows
-    public List<ExternalIdsHolder> retrieveExternalIdsHolders(String jobId, RecordType recordType) {
-        var totalHolders = new ArrayList<ExternalIdsHolder>();
-        int totalRecords = retrieveTotalRecords(jobId, recordType);
+    return totalHolders;
+  }
 
-        while (totalRecords > totalHolders.size()) {
-            totalHolders.addAll(retrieveExternalIdsHolders(jobId, recordType, totalHolders.size()));
-            log.info("Retrieving {} records: {} of {}", recordType, totalHolders.size(), totalRecords);
-        }
+  @SneakyThrows
+  private List<ExternalIdsHolder> retrieveExternalIdsHolders(String jobId, RecordType recordType, int offset) {
+    String uri = String.format(GET_RECORDS_PATH, jobId, recordType, LIMIT, offset);
 
-        return totalHolders;
-    }
+    var request = httpWorker.constructGETRequest(uri);
+    var response = httpWorker.sendRequest(request);
 
-    @SneakyThrows
-    private List<ExternalIdsHolder> retrieveExternalIdsHolders(String jobId, RecordType recordType, int offset) {
-        String uri = String.format(GET_RECORDS_PATH, jobId, recordType, LIMIT, offset);
+    httpWorker.verifyStatus(response, 200, "Failed to get records ids by jobId");
 
-        var request = httpWorker.constructGETRequest(uri);
-        var response = httpWorker.sendRequest(request);
+    return mapRecordsToExternalIds(response.body(), recordType);
+  }
 
-        httpWorker.verifyStatus(response, 200, "Failed to get records ids by jobId");
+  @SneakyThrows
+  private int retrieveTotalRecords(String jobId, RecordType recordType) {
+    String uri = String.format(GET_RECORDS_PATH, jobId, recordType, 0, 0);
 
-        return mapRecordsToExternalIds(response.body(), recordType);
-    }
+    var request = httpWorker.constructGETRequest(uri);
+    var response = httpWorker.sendRequest(request);
 
-    @SneakyThrows
-    private int retrieveTotalRecords(String jobId, RecordType recordType) {
-        String uri = String.format(GET_RECORDS_PATH, jobId, recordType, 0, 0);
+    httpWorker.verifyStatus(response, 200, "Failed to get records ids by jobId");
 
-        var request = httpWorker.constructGETRequest(uri);
-        var response = httpWorker.sendRequest(request);
-
-        httpWorker.verifyStatus(response, 200, "Failed to get records ids by jobId");
-
-        return mapResponseToJson(response).findValue("totalRecords").asInt();
-    }
+    return mapResponseToJson(response).findValue("totalRecords").asInt();
+  }
 }
