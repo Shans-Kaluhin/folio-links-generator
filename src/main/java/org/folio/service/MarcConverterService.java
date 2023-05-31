@@ -3,6 +3,7 @@ package org.folio.service;
 import lombok.extern.slf4j.Slf4j;
 import org.folio.model.Configuration;
 import org.folio.model.MarcField;
+import org.folio.model.SimpleMarcField;
 import org.folio.model.integration.ExternalIdsHolder;
 import org.folio.processor.translations.Translation;
 import org.folio.writer.RecordWriter;
@@ -14,7 +15,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.apache.commons.lang3.StringUtils.repeat;
 import static org.folio.mapper.MarcMapper.mapToCompositeValue;
+import static org.folio.mapper.MarcMapper.mapToStringValue;
 import static org.folio.util.FileWorker.writeFile;
 
 @Slf4j
@@ -47,6 +50,7 @@ public class MarcConverterService {
                     continue;
                 }
                 marcBibFields.add(getNameMarcField(List.of(authority.getId())));
+                marcBibFields.add(get008EmptyField());
                 marcBibFields.add(getInstanceTypeField());
                 mrcFile.add(createInstance(marcBibFields));
             }
@@ -54,6 +58,7 @@ public class MarcConverterService {
             for (var config : configuration.getMarcBibs()) {
                 var marcBibFields = mapFieldsAndFilterByRules(config.linkingFields());
                 marcBibFields.add(getNameMarcField(config.linkingFields()));
+                marcBibFields.add(get008EmptyField());
                 marcBibFields.add(getInstanceTypeField());
 
                 for (int i = 0; i < config.totalBibs(); i++) {
@@ -69,8 +74,13 @@ public class MarcConverterService {
     private String createInstance(List<MarcField> bibFields) {
         RecordWriter recordWriter = new MarcRecordWriter();
         recordWriter.writeLeader(getLeaderTranslation());
-        bibFields.forEach(bibField ->
-                recordWriter.writeField(bibField.getTag(), mapToCompositeValue(bibField)));
+        bibFields.forEach(bibField -> {
+          if (bibField instanceof SimpleMarcField simpleMarcField) {
+            recordWriter.writeField(bibField.getTag(), mapToStringValue(simpleMarcField));
+          } else {
+            recordWriter.writeField(bibField.getTag(), mapToCompositeValue(bibField));
+          }
+        });
 
         return recordWriter.getResult();
     }
@@ -117,6 +127,10 @@ public class MarcConverterService {
                 "position18", "c",
                 "position19", " "));
         return leaderTranslation;
+    }
+
+    private SimpleMarcField get008EmptyField() {
+        return new SimpleMarcField("008", repeat(' ', 40));
     }
 
     private MarcField getNameMarcField(List<String> fields) {

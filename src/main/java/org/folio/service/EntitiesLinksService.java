@@ -36,15 +36,14 @@ public class EntitiesLinksService {
     }
 
     private InstanceLinks constructLinksByMarcFields(ExternalIdsHolder instance) {
-        return new InstanceLinks(instance.getFields()
-                .stream()
+        return new InstanceLinks(instance.getFields().stream()
                 .map(marc -> constructLink(instance.getId(), marc))
                 .filter(Objects::nonNull)
                 .toList());
     }
 
     private InstanceLinks.Link constructLink(String instanceId, MarcField marcField) {
-        if (marcField == null || !marcField.getSubfields().containsKey('9')) {
+        if (marcField == null || !marcField.getSubfields().containsKey('0')) {
             return null;
         }
         var bibTag = marcField.getTag();

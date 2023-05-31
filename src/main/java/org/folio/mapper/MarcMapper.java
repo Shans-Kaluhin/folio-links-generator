@@ -3,6 +3,7 @@ package org.folio.mapper;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.JsonNodeType;
 import org.folio.model.MarcField;
+import org.folio.model.SimpleMarcField;
 import org.folio.processor.rule.DataSource;
 import org.folio.reader.values.CompositeValue;
 import org.folio.reader.values.StringValue;
@@ -23,6 +24,10 @@ public class MarcMapper {
 
         compositeValue.addEntry(values);
         return compositeValue;
+    }
+
+    public static StringValue mapToStringValue(SimpleMarcField marcField) {
+        return new StringValue(marcField.getValue(), new DataSource(), null);
     }
 
     public static List<StringValue> mapInd(MarcField marcField) {
